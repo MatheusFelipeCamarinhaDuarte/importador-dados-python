@@ -1,4 +1,4 @@
-from app.chave.conexao_firebase import conexao
+from app.keys.conexao_firebase import conexao
 from tkinter import messagebox
 from app.telas.tela_1_inicial import tela_inicial
 
