@@ -1,0 +1,10 @@
+main-prod.spec
+main-dev.spec
+build/
+dist/
+como-startar.txt
+app/chave/
+app/chave/
+env-python/
+arquivos_teste/
+teste.py
