@@ -13,4 +13,4 @@ if __name__ == "__main__":
             app.mainloop()
         else:
             # Mensagem para caso o certificado não seja válido
-            messagebox.showerror("Erro", "Você não tem um certificado válido")
+            messagebox.showerror("Erro", "Você está em uma versão desatualizada.\nFavor entrar em contato com o administrador para atualizar.")
