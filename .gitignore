@@ -8,5 +8,6 @@ env-python/
 arquivos_teste/
 teste.py
 __pycache__/
-app/telas/__pycache__/
+app/telas/
 app/classes/__pycache__/
+app/componentes/arquivo/__pycache__/
