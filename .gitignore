@@ -7,3 +7,6 @@ app/keys/
 env-python/
 arquivos_teste/
 teste.py
+__pycache__/
+app/telas/__pycache__/
+app/classes/__pycache__/
