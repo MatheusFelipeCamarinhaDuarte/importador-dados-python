@@ -192,6 +192,7 @@ class Janela(tk.Tk):
                 return False 
         return True
 
+# RETIRAR DE JANELA
     def selecionar_arquivo(self,func_proxima_tela: Callable[[],None],extensao_desejada:str='') -> None:
         """Método para selecionar arquivo arquivo e verificar se está na extensão correta,
         caso o arquivo não esteja na extensão desejada, o programa alerta o usuário.
@@ -242,6 +243,7 @@ class Janela(tk.Tk):
         if matriz:
             func_proxima_tela(self)
 
+# RETIRAR DE JANELA
     def filtro_de_importacao(self) -> list:
         """Função com o intuito de ser um filtro com base nas informações coletadas
         anteriormente, como o tipo de migração, o sistema de origem e destino e o
@@ -387,6 +389,7 @@ class Janela(tk.Tk):
             case _:
                 messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
 
+# TALVEZ RETIRAR DE JANELA
     def layout_de_conexao(self,frame_pertencente:tk.Frame,banco:Banco_de_dados,func_proxima_tela: Callable[[],None]) -> tk.Entry:
         """Método com o intuito de realizar o layout de conexao
         com o banco de dados (Nome do banco,usuário, senha).add()

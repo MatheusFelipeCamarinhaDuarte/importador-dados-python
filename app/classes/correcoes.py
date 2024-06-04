@@ -22,6 +22,7 @@ class Correcao():
         for original, replacement in substitutions.items():
             nome = nome.replace(original, replacement)
         return nome
+
     def corrigir_unidade(self,unidade:str) -> str:
         """Converte a unidade em unidade lida pelo AutoSystem
 
@@ -121,19 +122,5 @@ class Correcao():
         if unidade == 'KIT':
             return True
 
-def corrigir123():
-    pass
-def corrigir1234():
-    pass
-def corrigir12345():
-    pass
-def corrigir123456():
-    pass
-def corrigir1234567():
-    pass
-def corrigir12345678():
-    pass
-def corrigir123456789():
-    pass
-def corrigir1234567891():
+def corrigir_generico():
     pass
