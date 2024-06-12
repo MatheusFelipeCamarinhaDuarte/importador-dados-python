@@ -1,8 +1,13 @@
-class telas():
+try:
+    from app.classes.janela import Janela
+except:
+    from janela import Janela
+class telas(Janela):
     """Classe para importação de arquivos"""
     from app.classes.janela import Janela
     def __init__(self):
         """Método de criação das telas de importacao"""
+        super().__init__()
         # Tipo de migracao
         self.migracao = ''
         # Sistema de origem

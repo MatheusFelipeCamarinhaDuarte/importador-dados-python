@@ -168,7 +168,7 @@ class Banco_de_dados():
             self.finalizar()
             conecatar_banco(janela_principal,self)
             if lista_erros != []:
-                from app.componentes.arquivo.relatorios import baixar_arquivo_relatorio
+                from app.classes.relatorios import Relatorios
                 mensagem = tk.Toplevel()
                 xa = (mensagem.winfo_screenwidth() // 2) - (300 // 2)
                 ya = (mensagem.winfo_screenheight() // 2) - (300 // 2)
@@ -188,7 +188,7 @@ class Banco_de_dados():
                 label3.pack()
                 label2 = tk.Label(mensagem, text=f'Produtos com restrições: {len(lista_erros)}')
                 label2.pack()
-                botao = tk.Button(mensagem, text='Baixar relatório de importação', command=lambda: baixar_arquivo_relatorio(lista_erros, mensagem,janela_principal,nome_cliente), font=("Arial", 10))
+                botao = tk.Button(mensagem, text='Baixar relatório de importação', command=lambda: Relatorios.baixar_arquivo_relatorio(lista_erros, mensagem,janela_principal,nome_cliente), font=("Arial", 10))
                 botao.pack(pady=20)
                 # app/temp/relatorios/relatorio_erro_produto.csv
             # FIM = Componetizar

@@ -252,7 +252,7 @@ class Janela(tk.Tk):
         Returns:
             list: retorna a matriz gerada pelo sistema
         """
-        from app.componentes.arquivo.seller import xml_to_matriz_produto
+        from app.classes.seller import Seller
         migracao = self.migracao
         sistema_origem = self.sistema_origem 
         # sistema_destino = self.sistema_destino 
@@ -287,7 +287,7 @@ class Janela(tk.Tk):
                     case 'Seller':
                         match extensao:
                             case '.xml':
-                                self.matriz = xml_to_matriz_produto()
+                                self.matriz = Seller.xml_to_matriz_produto()
                                 
                                 return self.matriz
                             case '.csv':

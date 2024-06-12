@@ -1,6 +1,8 @@
 import os
-from app.classes.janela import Janela
-
+try:
+    from app.classes.janela import Janela
+except:
+    from janela import Janela
 
 class Arquivos():
     def manipular_arquivos_dados(janela_principal:Janela):
