@@ -69,7 +69,7 @@ class Banco_de_dados():
             id = maior_numero + 1
         return id
 
-# RETIRAR DE BANCO DE DADOS
+# RETIRAR DE BANCO DE DADOS > Produto
     def cadastrar_produtos(self,matriz:list,janela_principal,substituir:bool=False):
         """Método para cadastrar produtos a partir de uma matriz igual a todos. O formato desta matriz é:
         
@@ -188,7 +188,8 @@ class Banco_de_dados():
                 label3.pack()
                 label2 = tk.Label(mensagem, text=f'Produtos com restrições: {len(lista_erros)}')
                 label2.pack()
-                botao = tk.Button(mensagem, text='Baixar relatório de importação', command=lambda: Relatorios.baixar_arquivo_relatorio(lista_erros, mensagem,janela_principal,nome_cliente), font=("Arial", 10))
+                relatorios = Relatorios()
+                botao = tk.Button(mensagem, text='Baixar relatório de importação', command=lambda: relatorios.baixar_arquivo_relatorio(lista_erros, mensagem,janela_principal,nome_cliente), font=("Arial", 10))
                 botao.pack(pady=20)
                 # app/temp/relatorios/relatorio_erro_produto.csv
             # FIM = Componetizar
@@ -204,7 +205,7 @@ class Banco_de_dados():
                 # print("Todos os produtos foram adicionados com sucesso!!")
             # self.finalizar()
 
-# RETIRAR DE BANCO DE DADOS
+# RETIRAR DE BANCO DE DADOS > Produto
     def troca_de_grupo(self, matriz:list[list]) -> list[list]:
         """Método para trocar o grupo pelo grid equivalente
 
@@ -232,7 +233,7 @@ class Banco_de_dados():
             linha[3] = subgrupo_com_grid[linha[3]]
         return matriz
 
-# RETIRAR DE BANCO DE DADOS
+# RETIRAR DE BANCO DE DADOS > Produto
     def cadastrar_grupos_produtos(self,dicionario:dict) -> Tuple[dict,dict]:
         """Este métodos, de acordo com um dicionário onde os grupos são
         a chave e os subgrupos são os valores, faz a inserção dos grupos
@@ -283,7 +284,7 @@ class Banco_de_dados():
         self.conexao.commit()
         return grupo_com_grid, subgrupo_com_grid
 
-# RETIRAR DE BANCO DE DADOS
+# RETIRAR DE BANCO DE DADOS > Produto
     def verificacao_erro_produto(self,unid_venda:str,unid_compra:str,codigo_barra:str,nome:str,preco_venda:str,custo_medio:str) -> Tuple[bool,bool,str,str,list]:
         """Método de verificacao de erros antes das importações.
 

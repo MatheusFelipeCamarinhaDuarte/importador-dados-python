@@ -14,7 +14,7 @@ class Seller():
         from app.classes.correcoes import Correcao
         # Caminho completo para o arquivo XML
         correcao = Correcao()
-        caminho_app = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        caminho_app = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         caminho_dados = os.path.join(caminho_app,'temp','dados')
         
         # Aqui preciso passar o arquivo recebido por XML    

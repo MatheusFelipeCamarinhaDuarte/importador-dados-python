@@ -7,7 +7,7 @@ class Relatorios():
 
     def relatorio_erros_produto(self,relatorio_erro):
         # Nome do arquivo CSV
-        caminho_app = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        caminho_app = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         nome_arquivo = os.path.join(caminho_app,'temp','relatorios', 'relatorio_erro_produto.csv')
 
         # Abre o arquivo em modo de escrita
@@ -26,7 +26,7 @@ class Relatorios():
 
     def baixar_arquivo_relatorio(self,lista_erros:list,tela,janela_principal,nome_cliente:str):
         nome_arquivo = self.relatorio_erros_produto(lista_erros)
-        caminho_app = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        caminho_app = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         caminho_absoluto = os.path.join(caminho_app, 'temp','relatorios',nome_arquivo+'.csv')
         cliente = nome_cliente.replace(' ','_')
         destino = filedialog.asksaveasfilename(defaultextension='csv', initialfile="relatorio_restricoes_"+cliente.lower(), filetypes=[("Arquivos CSV", "*.csv")])
