@@ -54,6 +54,16 @@ class Banco_de_dados():
         self.cursor = None
         self.conexao = None
 
+    def executar_query(self, query):
+        """Método para executar uma query no banco de dados"""
+        self.cursor.execute(query)
+        self.conexao.commit()
+        try:
+            resultado = self.cursor.fetchall()
+        except:
+            resultado = None
+        return resultado
+
     def id(self,substituir, tabela):
         id = 1
         if substituir:
