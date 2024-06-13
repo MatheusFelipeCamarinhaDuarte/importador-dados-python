@@ -2,8 +2,12 @@ import csv
 import os
 from tkinter import filedialog
 from tkinter import messagebox
+try:
+    from app.classes.arquivos import Arquivos
+except:
+    from arquivos import Arquivos 
 
-class Relatorios():
+class Relatorios(Arquivos):
 
     def relatorio_erros_produto(self,relatorio_erro):
         # Nome do arquivo CSV
@@ -38,12 +42,12 @@ class Relatorios():
             
                 # print("Arquivo baixado com sucesso em:", destino)
                 os.remove(caminho_absoluto)
-                tela.destroy()
                 messagebox.showinfo("Sucesso", "Download concluído com sucesso!")
+                tela.destroy()
                 resposta = messagebox.askyesno('Teste',"Deseja voltar ao menu?")
                 if resposta:
-                    from app.telas.tela_2_escolha_tipo import escolha_tipo
-                    escolha_tipo(janela_principal)
+                    from app.telas.tela_2_escolha_tipo import Tela_2
+                    Tela_2(janela_principal)
                 
             except PermissionError:
                 # print("Erro: Permissão negada. Não é possível salvar o arquivo.")

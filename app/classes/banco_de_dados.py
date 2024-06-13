@@ -4,12 +4,14 @@ class Banco_de_dados():
     """Classe de banco de dados e suas operações"""
     from typing import Callable, Optional, Tuple, List
 
-    def __init__(self):
-        self.cursor = None
+    def __init__(self, usuario:str = '',senha:str = '', banco:str = ''):
+        self.usuario = usuario
+        self.senha = senha
+        self.banco = banco
         self.conexao = None
-        self.usuario = ''
-        self.senha = ''
-        self.banco = ''
+        self.cursor = None
+        if banco != '':
+            self.iniciar(self.usuario,self.senha,self.banco)
 
     def iniciar(self,usuario:str,senha:str,banco:str) -> None:
         """Método para inciar o banco de dados a partir de usuáriom senha e nome do banoc de dados
@@ -106,7 +108,7 @@ class Banco_de_dados():
             substituir (bool, optional): _description_. Defaults to False.
         """
         import tkinter as tk
-        from app.telas.tela_5_conectar_banco import conecatar_banco
+        from app.telas.tela_5_conectar_banco import Tela_5
         cursor = self.cursor
         conexao = self.conexao
         if conexao:
@@ -176,7 +178,7 @@ class Banco_de_dados():
             resultado = cursor.fetchall()
             nome_cliente = resultado[0][0]
             self.finalizar()
-            conecatar_banco(janela_principal,self)
+            Tela_5(janela_principal)
             if lista_erros != []:
                 from app.classes.relatorios import Relatorios
                 mensagem = tk.Toplevel()
@@ -204,11 +206,11 @@ class Banco_de_dados():
                 # app/temp/relatorios/relatorio_erro_produto.csv
             # FIM = Componetizar
             else:
-                from app.telas.tela_2_escolha_tipo import escolha_tipo
+                from app.telas.tela_2_escolha_tipo import Tela_2
                 label2 = tk.Label(mensagem, text="Todos os produtos foram adicionados com sucesso!!")
                 resposta = messagebox.askyesno('Teste',"Todos os dados foram inseridos com sucesso!\nDeseja voltar ao menu?")
                 if resposta:
-                    escolha_tipo(janela_principal)
+                    Tela_2(janela_principal)
                 else:
                     pass
                 label2.pack()

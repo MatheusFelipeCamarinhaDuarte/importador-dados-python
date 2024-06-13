@@ -14,6 +14,7 @@ class Janela(tk.Tk):
     from app.classes.banco_de_dados import Banco_de_dados
     def __init__(self):
         """Método de criação de tela personalizada"""
+        from app.classes.banco_de_dados import Banco_de_dados
         import os
         super().__init__()
         # Titulo inicial
@@ -26,12 +27,8 @@ class Janela(tk.Tk):
         self.resizable(False, False)
         # Protocolo de encerramento correto
         self.protocol("WM_DELETE_WINDOW", lambda: self.quit())
-        self.migracao = ''
-        self.sistema_origem = ''
-        self.sistema_destino = ''
-        self.extensao = ''
         self.matriz = []
-        self.banco = ''
+        self.banco = Banco_de_dados()
 
     def limpar(self) -> None:
         """Método para limpar todos os widgets
@@ -92,7 +89,7 @@ class Janela(tk.Tk):
         
         # Caso tenha a função da tela anterior, adiciona a tela voltar
         if func_tela_anterior:
-            voltar = tk.Button(frame_rodape, text="Voltar", command=lambda: [func_tela_anterior(self)])
+            voltar = tk.Button(frame_rodape, text="Voltar", command=lambda: [func_tela_anterior()])
             voltar.pack(side=tk.LEFT, pady=10, padx=10)
         
         # Adiciona o botão de sair da aplicação com o devido
@@ -157,7 +154,7 @@ class Janela(tk.Tk):
         lista_radio_buttons = []
         # Criação de radio_button versionada de acordo com a lista passada
         for texto in lista_radio:
-            radio_button = tk.Radiobutton(frame_dos_radio_buttons, text=texto, variable=var_opcao, value=texto, command=lambda: opcao.config(text=var_opcao.get()))
+            radio_button = tk.Radiobutton(frame_dos_radio_buttons, text=texto, variable=var_opcao, value=texto, command=lambda: [opcao.config(text=var_opcao.get())])
             radio_button.pack(anchor=orientacao,side=lado)
             lista_radio_buttons.append(radio_button)
 
@@ -193,7 +190,7 @@ class Janela(tk.Tk):
         return True
 
 # RETIRAR DE JANELA
-    def selecionar_arquivo(self,func_proxima_tela: Callable[[],None],extensao_desejada:str='') -> None:
+    def selecionar_arquivo(self,migracao:str='',sistema_origem:str='',sistema_destino:str='',extensao_desejada:str='') -> bool | list:
         """Método para selecionar arquivo arquivo e verificar se está na extensão correta,
         caso o arquivo não esteja na extensão desejada, o programa alerta o usuário.
 
@@ -216,7 +213,8 @@ class Janela(tk.Tk):
         
         # Verifica se o arquivo existe ou não. Se não existir, o programa alerta nenhuma caminho indicado
         if not arquivo_selecionado:
-            return messagebox.showerror("Erro", "Nenhum arquivo selecionado.")
+            messagebox.showerror("Erro", "Nenhum arquivo selecionado.")
+            return False
         
         # Recupero o nome e a extensão original do arquivo
         nome_arquivo = os.path.basename(arquivo_selecionado)
@@ -224,7 +222,8 @@ class Janela(tk.Tk):
         
         # Verifico se o arquivo que me entregou está no formato pedido, caso a extensão não seja equivalente ao pedido, ele envia um aviso.
         if extensao_arquivo != extensao_desejada:
-            return messagebox.showerror("Erro", f"Extensão inválida, o arquivo precisa ser {extensao_desejada}.")
+            messagebox.showerror("Erro", f"Extensão inválida, o arquivo precisa ser {extensao_desejada}.")
+            return False
         
         # Uso para referenciar a pasta onde ficara temporariamente os dados. PODE MUDAR
         caminho_app = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # app > componentes > tela > este arquivo
@@ -232,19 +231,18 @@ class Janela(tk.Tk):
         caminho_dados_temp = os.path.join(caminho_app, 'temp','dados')        
         # Capturo o nome antigo do arquivo e defino para um outro nome para ser o padrão
         antigo_nome = os.path.join(caminho_dados_temp,nome_arquivo)
-        novo_nome = os.path.join(caminho_dados_temp,'arquivo_temporario_'+self.migracao.lower().replace(' ','_')+extensao_arquivo)
+        novo_nome = os.path.join(caminho_dados_temp,'arquivo_temporario_'+migracao.lower().replace(' ','_')+extensao_arquivo)
         
         # Copio e renomeio o arquivo
         shutil.copy(arquivo_selecionado, caminho_dados_temp)
         shutil.move(antigo_nome,novo_nome)
-        self.extensao = extensao_arquivo
-        
-        matriz = self.filtro_de_importacao()
+        matriz = self.filtro_de_importacao(migracao,sistema_origem,sistema_destino,extensao_arquivo)
         if matriz:
-            func_proxima_tela(self)
+            return matriz
+        
 
 # RETIRAR DE JANELA
-    def filtro_de_importacao(self) -> list:
+    def filtro_de_importacao(self, migracao:str,sistema_origem:str,sistema_destino:str, extensao:str) -> list:
         """Função com o intuito de ser um filtro com base nas informações coletadas
         anteriormente, como o tipo de migração, o sistema de origem e destino e o
         sistema de destino e por fim a extensão
@@ -252,11 +250,11 @@ class Janela(tk.Tk):
         Returns:
             list: retorna a matriz gerada pelo sistema
         """
-        from app.classes.seller import Seller
-        migracao = self.migracao
-        sistema_origem = self.sistema_origem 
+        from app.classes.matriz import Matriz
+        # migracao = self.migracao
+        # sistema_origem = self.sistema_origem 
         # sistema_destino = self.sistema_destino 
-        extensao = self.extensao
+        # extensao = self.extensao
         match migracao:
             case 'PRODUTOS':
                 match sistema_origem:
@@ -287,9 +285,9 @@ class Janela(tk.Tk):
                     case 'Seller':
                         match extensao:
                             case '.xml':
-                                self.matriz = Seller.xml_to_matriz_produto()
+                                matriz = Matriz.xml_to_matriz_produto()
                                 
-                                return self.matriz
+                                return matriz
                             case '.csv':
                                 messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
                             case '.xls':
@@ -390,7 +388,7 @@ class Janela(tk.Tk):
                 messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
 
 # TALVEZ RETIRAR DE JANELA
-    def layout_de_conexao(self,frame_pertencente:tk.Frame,banco:Banco_de_dados,func_proxima_tela: Callable[[],None]) -> tk.Entry:
+    def layout_de_conexao(self,frame_pertencente:tk.Frame,func_proxima_tela: Callable[[],None]) -> tk.Entry:
         """Método com o intuito de realizar o layout de conexao
         com o banco de dados (Nome do banco,usuário, senha).add()
 
@@ -401,6 +399,8 @@ class Janela(tk.Tk):
         Returns:
             Tuple[tk.Entry]: retorna os 3 inputs
         """
+        from app.classes.banco_de_dados import Banco_de_dados
+        banco = Banco_de_dados()
         frame_conjunto = tk.Frame(frame_pertencente)
         frame_conjunto.pack()
         frame_nome_banco = tk.Frame(frame_conjunto)
@@ -414,21 +414,22 @@ class Janela(tk.Tk):
         label_nome_banco.pack(side=tk.LEFT, pady=10, padx=10)
         input_nome_banco = tk.Entry(frame_nome_banco, width=20)
         input_nome_banco.pack(side=tk.RIGHT, pady=10, padx=10)
-        input_nome_banco.insert(0, banco.banco)
+        input_nome_banco.insert(0, self.banco.banco)
         # Input de usuário do banco
         label_usuario = tk.Label(frame_usuario, text="Usuario do banco")
         label_usuario.pack(side=tk.LEFT, pady=10, padx=10)
         input_usuario = tk.Entry(frame_usuario, width=20)
         input_usuario.pack(side=tk.RIGHT, pady=10, padx=10)
-        input_usuario.insert(0, banco.usuario)
+        input_usuario.insert(0, self.banco.usuario)
         # Input de senha do banco
         label_senha = tk.Label(frame_senha, text="Senha do banco")
         label_senha.pack(side=tk.LEFT, pady=10, padx=10)
         input_senha = tk.Entry(frame_senha, width=20)
         input_senha.pack(side=tk.RIGHT, pady=10, padx=10)
-        input_senha.insert(0, banco.senha)
+        input_senha.insert(0, self.banco.senha)
         # Botão para conectar com o banco de dados
-        botao_conexao = tk.Button(frame_conjunto,text="CONECTAR AO BANCO", command=lambda:[banco.iniciar(input_usuario.get(),input_senha.get(),input_nome_banco.get()),func_proxima_tela(self,banco)])
+        conectar_ao_banco = lambda:[banco.iniciar(input_usuario.get(),input_senha.get(),input_nome_banco.get()), setattr(self,'banco',banco),func_proxima_tela()]
+        botao_conexao = tk.Button(frame_conjunto,text="CONECTAR AO BANCO", command=conectar_ao_banco)
         botao_conexao.pack()
         return input_nome_banco, input_usuario, input_senha
 

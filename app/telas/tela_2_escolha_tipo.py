@@ -1,24 +1,44 @@
 from app.classes.janela import Janela
-def escolha_tipo(janela_principal:Janela):
-    """Função para levar a tela de escolha do tipo de migração
+from app.classes.telas import Telas
 
-    Args:
-        janela_principal (Janela): Janela principal da aplicação.
-    """
-    # Importações
-    from tkinter import messagebox
-    from app.telas.tela_3_escolha_sistema import tela_de_escolha_sistema
-    
-    #Limpa a tela anterior
-    janela_principal.limpar()
-    janela_principal.title("Escolha o tipo de importação")  
+class Tela_2(Telas):
+    def carregar_pagina(self):
+        """Função para levar a tela de escolha do tipo de migração
 
-    # Frame do botão de escolha
-    frame_superior, frame_inferior = janela_principal.duplo_frame(janela_principal)
-    frame_superior.configure(pady=40)
-    # Menu de ação das telas de migração
-    dicionario_de_botoes = {'PRODUTOS': lambda:[setattr(janela_principal, 'migracao', 'PRODUTOS'),tela_de_escolha_sistema(janela_principal)], 'ESTOQUE': lambda:[messagebox.showerror('Error','Módulo ainda não implantado!')], 'CLIENTES': lambda:[messagebox.showerror('Error','Módulo ainda não implantado!')]}
-    janela_principal.multi_botoes(dicionario_de_botoes,frame_superior,20,2,20)
+        Args:
+            janela_principal (Janela): Janela principal da aplicação.
+        """
+        # Importações
+        from tkinter import messagebox
+        
+        #Limpa a tela anterior
+        janela_principal = self.janela
+        janela_principal.limpar()
+        janela_principal.title("Escolha o tipo de importação")  
 
-    # Rodapé dinâmico da tela
-    janela_principal.rodape(frame_inferior)
+        # Frame do botão de escolha
+        frame_superior, frame_inferior = janela_principal.duplo_frame(janela_principal)
+        frame_superior.configure(pady=40)
+        # Menu de ação das telas de migração
+        produto = lambda:[setattr(self, 'migracao', 'PRODUTOS'), self.ir_para_proxima_tela()]
+        estoque = lambda:[messagebox.showerror('Error','Módulo ESTOQUE ainda não implantado!')]
+        clientes = lambda:[messagebox.showerror('Error','Módulo CLIENTES ainda não implantado!')]
+        # cliente = lambda:ir_para_proxima_tela(janela_principal, migracao="CLIENTES")
+        # estoque = lambda:ir_para_proxima_tela(janela_principal, migracao="ESTOQUE")
+        
+        dicionario_de_botoes = {'PRODUTOS': produto, 'ESTOQUE': estoque, 'CLIENTES': clientes}
+        janela_principal.multi_botoes(dicionario_de_botoes,frame_superior,20,2,20)
+
+        # Rodapé dinâmico da tela
+        janela_principal.rodape(frame_inferior)
+        
+
+    def ir_para_proxima_tela(self):
+        # atributo = 'migracao'
+        # valor = 'PRODUTO'
+        # setattr(janela_principal, atributo, valor)
+        from app.telas.tela_3_escolha_sistema import Tela_3
+        migracao = self.migracao
+        janela_principal = self.janela
+        Tela_3(janela_principal,migracao)
+

@@ -2,7 +2,7 @@ import os
 import xml.etree.ElementTree as ET
 from tkinter import messagebox
 
-class Seller():
+class Matriz():
 
     def xml_to_matriz_produto() -> list[list]:
         """Função que recupera o arquivo temporário de produtos em xml
