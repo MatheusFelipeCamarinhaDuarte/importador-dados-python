@@ -13,9 +13,7 @@ class Tela_5(Telas):
             do método layout_de_conexao, ele é substituido por um banco com informações de conexao. Defaults to Banco_de_dados().
         """
         if not self.banco_destino.cursor:
-            if self.janela.banco_provisorio.usuario:
-                self.banco_origem = self.janela.banco_provisorio
-                self.janela.banco_provisorio = Banco_de_dados()
+            if self.banco_origem:
                 print("MEU USUARIO É "+self.banco_origem.usuario)
                 print("MEU BANCO É "+self.banco_origem.banco)
             else:
@@ -34,10 +32,8 @@ class Tela_5(Telas):
         # Rodape
         tela_anterior = lambda:Tela_4(janela_principal,self.migracao,self.sistema_origem,self.sistema_destino)
         janela_principal.rodape(frame_inferior,tela_anterior)
-        
-        matriz = self.matriz
         carregar_aqui = lambda: [setattr(self,'banco_destino', janela_principal.banco_provisorio),self.carregar_pagina()]
-        janela_principal.layout_de_conexao(frame_conexao,carregar_aqui)
+        janela_principal.layout_de_conexao(frame_conexao,carregar_aqui, self.banco_destino)
 
         dicionario_botoes = {f'SUBISTITUIR {self.migracao}':lambda:[],f'ADICIONAR {self.migracao}':lambda:[]}
         substituir, adicionar = janela_principal.multi_botoes(dicionario_botoes,frame_inserir,20,1,10)

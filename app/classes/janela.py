@@ -197,7 +197,7 @@ class Janela(tk.Tk):
                 return False 
         return True
 
-    def layout_de_conexao(self,frame_pertencente:tk.Frame,func_proxima_tela: Callable[[],None]) -> tk.Entry:
+    def layout_de_conexao(self,frame_pertencente:tk.Frame,func_proxima_tela: Callable[[],None], banco_pre_estabelecido:Banco_de_dados = Banco_de_dados()) -> tk.Entry:
         """Método com o intuito de realizar o layout de conexao
         com o banco de dados (Nome do banco,usuário, senha).add()
 
@@ -208,8 +208,7 @@ class Janela(tk.Tk):
         Returns:
             Tuple[tk.Entry]: retorna os 3 inputs
         """
-        from app.classes.banco_de_dados import Banco_de_dados
-        banco = Banco_de_dados()
+        banco = banco_pre_estabelecido
         frame_conjunto = tk.Frame(frame_pertencente)
         frame_conjunto.pack()
         frame_ip = tk.Frame(frame_conjunto)
@@ -229,11 +228,15 @@ class Janela(tk.Tk):
         lista = ["Definir","Localhost"]
         var_opcao_ip, radios = self.multi_radios(lista,frame_ip,True,False,'left')
         radio_ip_1, radio_ip_2 = radios
-        var_opcao_ip.set(lista[1])
+            
         input_ip = tk.Entry(frame_ip)
         input_ip.pack(padx=10)
-        input_ip.insert(0, 'localhost')
+        input_ip.insert(0, banco_pre_estabelecido.host)
         input_ip.config(state='disabled')
+        var_opcao_ip.set(lista[1])
+        if banco_pre_estabelecido.host != 'localhost':
+            var_opcao_ip.set(lista[0])
+            input_ip.config(state='normal')
         radio_ip_1.config(command=lambda:[input_ip.config(state='normal'),input_ip.delete(0, 'end')])
         radio_ip_2.config(command=lambda:[input_ip.delete(0, 'end'),input_ip.insert(0, 'localhost'),input_ip.config(state='disabled')])
 
@@ -246,8 +249,11 @@ class Janela(tk.Tk):
         var_opcao_porta.set(lista[1])
         input_porta = tk.Entry(frame_porta)
         input_porta.pack(side=tk.RIGHT, padx=10)
-        input_porta.insert(0, '5432')
+        input_porta.insert(0, banco_pre_estabelecido.porta)
         input_porta.config(state='disabled')
+        if banco_pre_estabelecido.porta != '5432':
+            var_opcao_ip.set(lista[0])
+            input_ip.config(state='normal')
         radio_porta_1.config(command=lambda:[input_porta.config(state='normal'),input_porta.delete(0, 'end')])
         radio_porta_2.config(command=lambda:[input_porta.delete(0, 'end'),input_porta.insert(0, '5432'),input_porta.config(state='disabled')])
 
@@ -256,19 +262,19 @@ class Janela(tk.Tk):
         label_nome_banco.pack(side=tk.LEFT, pady=5, padx=10)
         input_nome_banco = tk.Entry(frame_nome_banco, width=20)
         input_nome_banco.pack(side=tk.RIGHT, pady=5, padx=10)
-        input_nome_banco.insert(0, self.banco_provisorio.banco)
+        input_nome_banco.insert(0, banco_pre_estabelecido.banco)
         # Input de usuário do banco
         label_usuario = tk.Label(frame_usuario, text="Usuario do banco")
         label_usuario.pack(side=tk.LEFT, pady=5, padx=10)
         input_usuario = tk.Entry(frame_usuario, width=20)
         input_usuario.pack(side=tk.RIGHT, pady=5, padx=10)
-        input_usuario.insert(0, self.banco_provisorio.usuario)
+        input_usuario.insert(0, banco_pre_estabelecido.usuario)
         # Input de senha do bancos
         label_senha = tk.Label(frame_senha, text="Senha do banco")
         label_senha.pack(side=tk.LEFT, pady=5, padx=10)
         input_senha = tk.Entry(frame_senha, width=20)
         input_senha.pack(side=tk.RIGHT, pady=5, padx=10)
-        input_senha.insert(0, self.banco_provisorio.senha)
+        input_senha.insert(0, banco_pre_estabelecido.senha)
         # Botão para conectar com o banco de dados
         conectar_ao_banco = lambda:[banco.iniciar(input_usuario.get(),input_senha.get(),input_nome_banco.get(),input_porta.get(),input_ip.get()), setattr(self,'banco_provisorio',banco),func_proxima_tela()]
         botao_conexao = tk.Button(frame_conjunto,text="CONECTAR AO BANCO", command=conectar_ao_banco)

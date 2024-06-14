@@ -4,7 +4,7 @@ class Banco_de_dados():
     """Classe de banco de dados e suas operações"""
     from typing import Callable, Optional, Tuple, List
 
-    def __init__(self, usuario:str = '',senha:str = '', banco:str = '',porta:int = 5432, host:str = 'localhost'):
+    def __init__(self, usuario:str = '',senha:str = '', banco:str = '',porta:int = '5432', host:str = 'localhost'):
         self.usuario = usuario
         self.senha = senha
         self.banco = banco
@@ -15,7 +15,7 @@ class Banco_de_dados():
         if banco != '':
             self.iniciar(self.usuario,self.senha,self.banco,self.porta,self.host)
 
-    def iniciar(self,usuario:str,senha:str,banco:str,porta:int = 5432, host:str = 'localhost') -> None:
+    def iniciar(self,usuario:str,senha:str,banco:str,porta:int = '5432', host:str = 'localhost') -> None:
         """Método para inciar o banco de dados a partir de usuáriom senha e nome do banoc de dados
 
         Args:
@@ -31,6 +31,8 @@ class Banco_de_dados():
         self.usuario = usuario
         self.senha = senha
         self.banco = banco
+        self.porta = porta
+        self.host = host
         try:
             conn1 = psycopg2.connect(
                 host=host,
@@ -49,6 +51,8 @@ class Banco_de_dados():
             self.usuario = ''
             self.senha = ''
             self.banco = ''
+            self.porta = ''
+            self.host = ''
             messagebox.showerror("Erro", "Os dados passados de usuário, senha ou banco estão incorretos.")
 
     def finalizar(self) -> None:

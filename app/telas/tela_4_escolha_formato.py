@@ -33,7 +33,7 @@ class Tela_4(Telas):
         label_arquivos.pack()
 
         # proxima_tela_com_banco = lambda:messagebox.showerror("Erro","Módulo ainda não implantado")
-        janela_principal.layout_de_conexao(frame_banco,self.ir_para_proxima_tela_com_banco)
+        janela_principal.layout_de_conexao(frame_banco,self.ir_para_proxima_tela_com_banco,self.banco_origem)
         # Campo via relatórios
         label_arquivos = tk.Label(frame_arquivos, text=f"Importação via relatório:", font=2)
         label_arquivos.pack(pady=(7,0))
@@ -81,12 +81,14 @@ class Tela_4(Telas):
     def ir_para_proxima_tela_com_banco(self):
         from app.telas.tela_5_conectar_banco import Tela_5
         from app.classes.matriz import Matriz
+        from app.classes.banco_de_dados import Banco_de_dados
         janela_principal = self.janela
         migracao = self.migracao
         sistema_origem = self.sistema_origem
         sistema_destino = self.sistema_destino
         self.extensao = 'banco'
-        # matriz = janela_principal.selecionar_arquivo(migracao,sistema_origem,sistema_destino,extensao)
+        self.banco_origem = self.janela.banco_provisorio
+        self.janela.banco_provisorio = Banco_de_dados()
         self.matriz = Matriz(migracao,sistema_origem,sistema_destino,self.extensao).filtro_de_importacao()
         if self.matriz:
             Tela_5(janela_principal,migracao,sistema_origem,sistema_destino,self.extensao,self.matriz)
