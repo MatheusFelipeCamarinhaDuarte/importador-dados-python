@@ -1,94 +1,25 @@
-from tkinter import messagebox
-
-class Banco_de_dados():
-    """Classe de banco de dados e suas operações"""
+from app.classes.banco_de_dados import Banco_de_dados
+class Produto():
     from typing import Callable, Optional, Tuple, List
 
-    def __init__(self, usuario:str = '',senha:str = '', banco:str = '',porta:int = 5432, host:str = 'localhost'):
-        self.usuario = usuario
-        self.senha = senha
-        self.banco = banco
-        self.porta = porta
-        self.host = host
-        self.conexao = None
-        self.cursor = None
-        if banco != '':
-            self.iniciar(self.usuario,self.senha,self.banco,self.porta,self.host)
-
-    def iniciar(self,usuario:str,senha:str,banco:str,porta:int = 5432, host:str = 'localhost') -> None:
-        """Método para inciar o banco de dados a partir de usuáriom senha e nome do banoc de dados
+    def __init__(self,matriz:list[list],banco:Banco_de_dados = Banco_de_dados()):
+        """Aqui eu coloco os atributos inciais de Produto
 
         Args:
-            janela_principal (Janela): Janela principal da aplicação
-            usuario (str): Nome do usuário passado por meio de input
-            senha (str): senha do usuário passado por meio de input
-            banco (str): Nome do banco passado por meio de input
-
-        Returns:
-            conecao: retorna uma conexão com o banco de dados especificado.
+            matriz (list[list]): a matriz com os produtos a serem inseridos
+            banco (Banco_de_dados): o banco de dados que vai ser usado para cadastrar
         """
-        import psycopg2
-        self.usuario = usuario
-        self.senha = senha
+        self.matriz = matriz
         self.banco = banco
-        try:
-            conn1 = psycopg2.connect(
-                host=host,
-                port=porta,
-                user=usuario,
-                password=senha,
-                database=banco
-            )
-            cur1 = conn1.cursor()
-            self.cursor = cur1 
-            self.conexao = conn1
-            messagebox.showinfo("Sucesso", "Conexão estabelecida com sucesso")
-        except:
-            self.cursor = None 
-            self.conexao = None
-            self.usuario = ''
-            self.senha = ''
-            self.banco = ''
-            messagebox.showerror("Erro", "Os dados passados de usuário, senha ou banco estão incorretos.")
-
-    def finalizar(self) -> None:
-        """Método para o fechamento correto do banco de dados."""
-        self.conexao.commit()
-        self.cursor.close()
-        self.conexao.close()
-        self.cursor = None
-        self.conexao = None
-
-    def executar_query(self, query):
-        """Método para executar uma query no banco de dados"""
-        try:
-            self.cursor.execute(query)
-            self.conexao.commit()
-        except Exception as e:
-            print(e)
-        try:
-            resultado = self.cursor.fetchall()
-        except:
-            resultado = None
-        return resultado
-
-    def id(self,substituir, tabela):
-        id = 1
-        if substituir:
-            self.cursor.execute(f"DELETE FROM {tabela}")
-        else:
-            self.cursor.execute(f"SELECT * FROM {tabela}")
-            result1 = self.cursor.fetchall()
-            maior_numero = 0
-            for i in result1:
-                numero = int(i[0])
-                if numero >= maior_numero:
-                    maior_numero = numero
-            id = maior_numero + 1
-        return id
-
-# RETIRAR DE BANCO DE DADOS > Produto
-    def cadastrar_produtos(self,matriz:list,substituir:bool=False) -> Tuple[list[list[any]],int,int,int]:
+    
+    def cadastrar_produto(self,matriz:list[list]) -> list[list]:
+        pass
+    
+    def tratamento_de_matriz(self):
+        pass
+    
+    
+    def cadastrar_produtos(self,substituir:bool=False) -> Tuple[list[list[any]],int,int,int]:
         """Método para cadastrar produtos a partir de uma matriz igual a todos. O formato desta matriz é:
         
         formato ideal:
@@ -113,14 +44,12 @@ class Banco_de_dados():
             janela_principal (_type_): _description_
             substituir (bool, optional): _description_. Defaults to False.
         """
-        import tkinter as tk
-        from app.telas.tela_5_conectar_banco import Tela_5
-        conexao = self.conexao
+        conexao = self.banco.conexao
         if conexao:
-            id = self.id(substituir, 'produto')        
+            id = self.banco.id(substituir, 'produto')        
             
             if not substituir:
-                result1 = self.executar_query(f"SELECT codigo_barra FROM produto")
+                result1 = self.banco.executar_query(f"SELECT codigo_barra FROM produto")
                 maior_numero = 0
                 for i in result1:
                     numero = int(i[0])
@@ -129,13 +58,13 @@ class Banco_de_dados():
                 id = maior_numero + 1
             
             # Inserção dos grupos e subgrupos, junto com a troca de seus nomes por grid
-            matriz = self.troca_de_grupo(matriz)
+            matriz = self.troca_de_grupo(self.matriz)
             
             lista_erros = []
             lista_tributacoes = []
             contador_produtos_totais = 0
-            result = self.executar_query(f"SELECT * FROM tributacao WHERE tributacao = 0;")
-            resultado_cd_tributacao = self.executar_query(f"SELECT codigo FROM tributacao;")
+            result = self.banco.executar_query(f"SELECT * FROM tributacao WHERE tributacao = 0;")
+            resultado_cd_tributacao = self.banco.executar_query(f"SELECT codigo FROM tributacao;")
             for item in resultado_cd_tributacao:
                 lista_tributacoes.append(item[0])
             for produto in matriz:
@@ -157,7 +86,7 @@ class Banco_de_dados():
                 if importar:
                     try:
                         query = f"INSERT INTO produto(codigo, codigo_barra, nome, grupo, subgrupo, preco_unit, preco_custo, unid_med, unid_med_entrada, qtde_unid_entrada, codigo_ncm, tributacao, cst_pis, cst_cofins, cst_pis_entrada, cst_cofins_entrada) VALUES({id}, {codigo_barra}, '{nome}', {grupo}, {subgrupo}, {preco_venda}, {custo_medio}, '{unid_venda}', '{unid_compra}', {fator_conversao}, '{codigo_ncm}', '{tributacao}', '{cst_pis}', '{cst_cofins}', '{cst_pis_entrada}', '{cst_cofins_entrada}');"
-                        self.executar_query(query)
+                        self.banco.executar_query(query)
                         id += 1
                     except Exception as e:
                         motivo_erro.append(e)
@@ -174,12 +103,10 @@ class Banco_de_dados():
                     lista_erros.append([id_erro,nome,codigo_barra,preco_venda,custo_medio,importado,motivo_erro])            
             conexao.commit()
                         
-            resultado_produtos_totais = self.executar_query(f"SELECT codigo FROM produto;")
-            self.finalizar()
+            resultado_produtos_totais = self.banco.executar_query(f"SELECT codigo FROM produto;")
+            self.banco.finalizar()
             return lista_erros, len(resultado_produtos_totais),contador_produtos_totais, id
-            
 
-# RETIRAR DE BANCO DE DADOS > Produto
     def troca_de_grupo(self, matriz:list[list]) -> list[list]:
         """Método para trocar o grupo pelo grid equivalente
 
@@ -207,7 +134,6 @@ class Banco_de_dados():
             linha[3] = subgrupo_com_grid[linha[3]]
         return matriz
 
-# RETIRAR DE BANCO DE DADOS > Produto
     def cadastrar_grupos_produtos(self,dicionario:dict) -> Tuple[dict,dict]:
         """Este métodos, de acordo com um dicionário onde os grupos são
         a chave e os subgrupos são os valores, faz a inserção dos grupos
@@ -220,41 +146,40 @@ class Banco_de_dados():
             Tuple[dict,dict]: Envia 2 dicionário (um de grupo e outro de subgrupo). 
             cada dicionário tem o nome como chave e o grid como valor
         """
-        self.executar_query(f"DELETE FROM grupo_produto")
-        self.executar_query(f"DELETE FROM subgrupo_produto")
+        self.banco.executar_query(f"DELETE FROM grupo_produto")
+        self.banco.executar_query(f"DELETE FROM subgrupo_produto")
         id = 1
         id_sub = 1
         grupo_com_grid = {} 
         subgrupo_com_grid = {}
         for grupo, subgrupos in dicionario.items():
-            self.executar_query(f"INSERT INTO grupo_produto (codigo,nome,flag,estoque_negativo_deposito) VALUES ({id},'{grupo}','A',true);")
-            result1 = self.executar_query(f"SELECT * FROM grupo_produto WHERE codigo = {id};")
+            self.banco.executar_query(f"INSERT INTO grupo_produto (codigo,nome,flag,estoque_negativo_deposito) VALUES ({id},'{grupo}','A',true);")
+            result1 = self.banco.executar_query(f"SELECT * FROM grupo_produto WHERE codigo = {id};")
             grid_grupo = result1[0][3]
             grupo_com_grid[grupo] = grid_grupo
             for subgrupo in subgrupos:
-                self.executar_query(f"INSERT INTO subgrupo_produto (codigo,nome,grupo,flag) VALUES ({id_sub},'{subgrupo}',{grid_grupo},'A');")
-                result1 = self.executar_query(f"SELECT * FROM subgrupo_produto WHERE codigo = {id_sub};")
+                self.banco.executar_query(f"INSERT INTO subgrupo_produto (codigo,nome,grupo,flag) VALUES ({id_sub},'{subgrupo}',{grid_grupo},'A');")
+                result1 = self.banco.executar_query(f"SELECT * FROM subgrupo_produto WHERE codigo = {id_sub};")
                 grid_subgrupo = result1[0][4]
                 subgrupo_com_grid[subgrupo] = grid_subgrupo
                 id_sub += 1
             id += 1
         
-        resultado = self.executar_query(f"SELECT grid FROM deposito WHERE codigo = 100;")
+        resultado = self.banco.executar_query(f"SELECT grid FROM deposito WHERE codigo = 100;")
         try:
             grid_depoisto = resultado[0][0]
-            self.executar_query(f"UPDATE deposito SET estoque_negativo = false WHERE codigo = 100;")
+            self.banco.executar_query(f"UPDATE deposito SET estoque_negativo = false WHERE codigo = 100;")
         except:
-            self.executar_query(f"INSERT INTO deposito (codigo,nome,empresa,flag) VALUES (100,'DEPOSITO LOJA',1,'A');")
-            resultado = self.executar_query(f"SELECT grid FROM deposito WHERE codigo = 100;")
+            self.banco.executar_query(f"INSERT INTO deposito (codigo,nome,empresa,flag) VALUES (100,'DEPOSITO LOJA',1,'A');")
+            resultado = self.banco.executar_query(f"SELECT grid FROM deposito WHERE codigo = 100;")
             grid_depoisto = resultado[0][0]
         # self.cursor.execute("DELETE FROM deposito_grupo_produto WHERE codigo = 100;")
-            self.executar_query(f"DELETE FROM deposito_grupo_produto WHERE deposito = ({grid_depoisto});")
+            self.banco.executar_query(f"DELETE FROM deposito_grupo_produto WHERE deposito = ({grid_depoisto});")
         for nome_grupo,grid_dos_grupos in grupo_com_grid.items():
-            self.executar_query(f"INSERT INTO deposito_grupo_produto (deposito,grupo) VALUES ({grid_depoisto},{grid_dos_grupos});")
-        self.conexao.commit()
+            self.banco.executar_query(f"INSERT INTO deposito_grupo_produto (deposito,grupo) VALUES ({grid_depoisto},{grid_dos_grupos});")
+        self.banco.conexao.commit()
         return grupo_com_grid, subgrupo_com_grid
 
-# RETIRAR DE BANCO DE DADOS > Produto
     def verificacao_erro_produto(self, codigo_barra:str, nome:str, preco_venda:str, custo_medio:str, unid_venda:str, unid_compra:str) -> Tuple[str,str,str,str,str,str,bool,bool,list[str]]:
         """Método de verificacao de erros antes das importações.
 
@@ -313,3 +238,4 @@ class Banco_de_dados():
 
         
         return codigo_barra, nome, preco_venda, custo_medio, unid_venda, unid_compra, importar, errado, motivo_erro
+

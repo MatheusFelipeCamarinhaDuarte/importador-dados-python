@@ -1,4 +1,3 @@
-from app.classes.janela import Janela
 from app.classes.telas import Telas
 
 class Tela_3(Telas):
@@ -36,15 +35,15 @@ class Tela_3(Telas):
         label_titulo_destino.pack(side=tk.TOP,anchor=tk.NW)
 
         # Criação dos radio botões de sistema de origem e sistema de destino
-        sistemas_origem = ["Autosystem","EMsys","Posto Fácil", "Seller", "Outros"]
+        sistemas_origem = ["Autosystem","Posto Fácil", "Seller", "Outros"]
         var_origem, lista_radio_origem = janela_principal.multi_radios(sistemas_origem,frame_sistema_origem)
-        as_or,em_or,pf_or,seller_or,outros_or = lista_radio_origem
+        as_or,pf_or,seller_or,outros_or = lista_radio_origem
         
-        sistemas_destino = ["Autosystem","EMsys","Posto Fácil", "Seller"]
+        sistemas_destino = ["Autosystem","Posto Fácil"]
         var_destino, lista_radio_destino = janela_principal.multi_radios(sistemas_destino,frame_sistema_destino)
-        as_des, em_des, pf_des, seller_des = lista_radio_destino
+        as_des, pf_des = lista_radio_destino
         
-        janela_principal.desativar_radio(as_or,em_or,pf_or,outros_or,em_des, pf_des,seller_des) # Desativando radios ainda não implementados
+        janela_principal.desativar_radio(as_or,pf_or,outros_or,pf_des) # Desativando radios ainda não implementados
         
         # Criando botão e rodapé dinâmico do frame inferior
         proximo = lambda:[setattr(self,'sistema_origem',var_origem.get()), setattr(self,'sistema_destino',var_destino.get()),self.ir_para_proxima_tela()]

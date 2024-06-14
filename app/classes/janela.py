@@ -14,8 +14,8 @@ class Janela(tk.Tk):
     from app.classes.banco_de_dados import Banco_de_dados
     def __init__(self):
         """Método de criação de tela personalizada"""
-        from app.classes.banco_de_dados import Banco_de_dados
         import os
+        from app.classes.banco_de_dados import Banco_de_dados
         super().__init__()
         # Titulo inicial
         self.title("Matheus Solutions")
@@ -28,7 +28,7 @@ class Janela(tk.Tk):
         # Protocolo de encerramento correto
         self.protocol("WM_DELETE_WINDOW", lambda: self.quit())
         self.matriz = []
-        self.banco = Banco_de_dados()
+        self.banco_provisorio = Banco_de_dados()
 
     def limpar(self) -> None:
         """Método para limpar todos os widgets
@@ -86,7 +86,6 @@ class Janela(tk.Tk):
         # A partir do frame inferior, cria um outro frame destinado ao rodapé
         frame_rodape = tk.Frame(frame_inferior)
         frame_rodape.pack(anchor=tk.S,expand=True, fill=tk.X)
-        
         # Caso tenha a função da tela anterior, adiciona a tela voltar
         if func_tela_anterior:
             voltar = tk.Button(frame_rodape, text="Voltar", command=lambda: [func_tela_anterior()])
@@ -121,7 +120,7 @@ class Janela(tk.Tk):
             todos.append(button)
         return todos
 
-    def multi_radios(self,lista_radio:list, frame_pertencente:tk.Frame,lista:bool=False) -> Tuple[tk.StringVar,List[tk.Radiobutton]]:
+    def multi_radios(self,lista_radio:list, frame_pertencente:tk.Frame,lista:bool=False,resposta:bool = True, frame_side:str = None) -> Tuple[tk.StringVar,List[tk.Radiobutton]]:
         """Método para criar multiplos botões radios em sequência um do outro e 
         retorna-los junto com a variável.
         
@@ -143,7 +142,13 @@ class Janela(tk.Tk):
         
         # Criação do subframe para o radio button
         frame_dos_radio_buttons = tk.Frame(frame_pertencente)
-        frame_dos_radio_buttons.pack()
+        if frame_side:
+            if frame_side not in ['left', 'right', 'top', 'bottom']:
+                raise ValueError("A lista deve ser 'left', 'right', 'top' ou 'bottom'.")
+            else:
+                frame_dos_radio_buttons.pack(side=frame_side)
+        else:    
+            frame_dos_radio_buttons.pack()
         
         #Definição de 
         lado = tk.TOP
@@ -151,16 +156,19 @@ class Janela(tk.Tk):
         if lista:
             lado = tk.RIGHT
             orientacao=tk.CENTER
+        
+        
         lista_radio_buttons = []
         # Criação de radio_button versionada de acordo com a lista passada
         for texto in lista_radio:
             radio_button = tk.Radiobutton(frame_dos_radio_buttons, text=texto, variable=var_opcao, value=texto, command=lambda: [opcao.config(text=var_opcao.get())])
             radio_button.pack(anchor=orientacao,side=lado)
             lista_radio_buttons.append(radio_button)
-
-        # Label para mostrar a opção selecionada
+        
         opcao = tk.Label(frame_pertencente, text=var_opcao.get())
-        opcao.pack(anchor=orientacao)
+        if resposta:
+            # Label para mostrar a opção selecionada
+            opcao.pack(anchor=orientacao)
         
         # Retorna a variável que mantém o valor selecionado
         return var_opcao, lista_radio_buttons
@@ -189,205 +197,6 @@ class Janela(tk.Tk):
                 return False 
         return True
 
-# RETIRAR DE JANELA
-    def selecionar_arquivo(self,migracao:str='',sistema_origem:str='',sistema_destino:str='',extensao_desejada:str='') -> bool | list:
-        """Método para selecionar arquivo arquivo e verificar se está na extensão correta,
-        caso o arquivo não esteja na extensão desejada, o programa alerta o usuário.
-
-        método salva o arquivo (se houver) na pasta temporário para futura exclusão.
-        
-        Após isso, chama a próxima tela.
-
-        Args:
-            func_proxima_tela (Callable[[],None]): Função para prosseguir para a próxima tela
-            extensao_desejada (str, optional): string da extenção desejada. Defaults to ''.
-        """
-        # Importações
-        import os
-        import shutil
-        from tkinter import filedialog
-        # Definindo a extensão pedida como padrão da Janela
-        
-        # Pede ao usuário o arquivo já na extensão destinada. Se não tiver, permite qualquer extensão
-        arquivo_selecionado = filedialog.askopenfilename(filetypes=[(f"Arquivos {extensao_desejada.replace('.','').upper()}", f"*{extensao_desejada}")])
-        
-        # Verifica se o arquivo existe ou não. Se não existir, o programa alerta nenhuma caminho indicado
-        if not arquivo_selecionado:
-            messagebox.showerror("Erro", "Nenhum arquivo selecionado.")
-            return False
-        
-        # Recupero o nome e a extensão original do arquivo
-        nome_arquivo = os.path.basename(arquivo_selecionado)
-        extensao_arquivo = os.path.splitext(arquivo_selecionado)[1]
-        
-        # Verifico se o arquivo que me entregou está no formato pedido, caso a extensão não seja equivalente ao pedido, ele envia um aviso.
-        if extensao_arquivo != extensao_desejada:
-            messagebox.showerror("Erro", f"Extensão inválida, o arquivo precisa ser {extensao_desejada}.")
-            return False
-        
-        # Uso para referenciar a pasta onde ficara temporariamente os dados. PODE MUDAR
-        caminho_app = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # app > componentes > tela > este arquivo
-        
-        caminho_dados_temp = os.path.join(caminho_app, 'temp','dados')        
-        # Capturo o nome antigo do arquivo e defino para um outro nome para ser o padrão
-        antigo_nome = os.path.join(caminho_dados_temp,nome_arquivo)
-        novo_nome = os.path.join(caminho_dados_temp,'arquivo_temporario_'+migracao.lower().replace(' ','_')+extensao_arquivo)
-        
-        # Copio e renomeio o arquivo
-        shutil.copy(arquivo_selecionado, caminho_dados_temp)
-        shutil.move(antigo_nome,novo_nome)
-        matriz = self.filtro_de_importacao(migracao,sistema_origem,sistema_destino,extensao_arquivo)
-        if matriz:
-            return matriz
-        
-
-# RETIRAR DE JANELA
-    def filtro_de_importacao(self, migracao:str,sistema_origem:str,sistema_destino:str, extensao:str) -> list:
-        """Função com o intuito de ser um filtro com base nas informações coletadas
-        anteriormente, como o tipo de migração, o sistema de origem e destino e o
-        sistema de destino e por fim a extensão
-
-        Returns:
-            list: retorna a matriz gerada pelo sistema
-        """
-        from app.classes.matriz import Matriz
-        # migracao = self.migracao
-        # sistema_origem = self.sistema_origem 
-        # sistema_destino = self.sistema_destino 
-        # extensao = self.extensao
-        match migracao:
-            case 'PRODUTOS':
-                match sistema_origem:
-                    case 'Autosystem':
-                        match extensao:
-                            case '.xml':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.csv':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.xls':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                    case 'EMsys':
-                        match extensao:
-                            case '.xml':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.csv':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.xls':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                    case 'Posto Fácil':
-                        match extensao:
-                            case '.xml':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.csv':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.xls':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                    case 'Seller':
-                        match extensao:
-                            case '.xml':
-                                matriz = Matriz.xml_to_matriz_produto()
-                                
-                                return matriz
-                            case '.csv':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.xls':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                    case 'Outros':
-                        match extensao:
-                            case '.xml':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.csv':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.xls':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-            case 'ESTOQUE':
-                match sistema_origem:
-                    case 'Autosystem':
-                        match extensao:
-                            case '.xml':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.csv':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.xls':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                    case 'EMsys':
-                        match extensao:
-                            case '.xml':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.csv':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.xls':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                    case 'Posto Fácil':
-                        match extensao:
-                            case '.xml':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.csv':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.xls':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                    case 'Seller':
-                        match extensao:
-                            case '.xml':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.csv':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.xls':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                    case 'Outros':
-                        match extensao:
-                            case '.xml':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.csv':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.xls':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-            case 'CLIENTES':
-                match sistema_origem:
-                    case 'Autosystem':
-                        match extensao:
-                            case '.xml':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.csv':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.xls':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                    case 'EMsys':
-                        match extensao:
-                            case '.xml':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.csv':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.xls':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                    case 'Posto Fácil':
-                        match extensao:
-                            case '.xml':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.csv':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.xls':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                    case 'Seller':
-                        match extensao:
-                            case '.xml':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.csv':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.xls':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                    case 'Outros':
-                        match extensao:
-                            case '.xml':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.csv':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-                            case '.xls':
-                                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-            case _:
-                messagebox.showerror("Erro", f"Tipo de importação {migracao} ERRADA. Sistema de Origem {sistema_origem} ERRADO. Tipo de extenção {extensao} ERRADA.")
-
-# TALVEZ RETIRAR DE JANELA
     def layout_de_conexao(self,frame_pertencente:tk.Frame,func_proxima_tela: Callable[[],None]) -> tk.Entry:
         """Método com o intuito de realizar o layout de conexao
         com o banco de dados (Nome do banco,usuário, senha).add()
@@ -403,34 +212,67 @@ class Janela(tk.Tk):
         banco = Banco_de_dados()
         frame_conjunto = tk.Frame(frame_pertencente)
         frame_conjunto.pack()
+        frame_ip = tk.Frame(frame_conjunto)
+        frame_ip.pack(expand=True, fill=tk.X)
+        frame_porta = tk.Frame(frame_conjunto)
+        frame_porta.pack(expand=True, fill=tk.X)
         frame_nome_banco = tk.Frame(frame_conjunto)
         frame_nome_banco.pack(expand=True, fill=tk.X)
         frame_usuario = tk.Frame(frame_conjunto)
         frame_usuario.pack(expand=True, fill=tk.X)
         frame_senha = tk.Frame(frame_conjunto)
         frame_senha.pack(expand=True, fill=tk.X)
+        
+        # IP Section
+        label_ip = tk.Label(frame_ip, text="IP")
+        label_ip.pack(side=tk.LEFT, padx=10)
+        lista = ["Definir","Localhost"]
+        var_opcao_ip, radios = self.multi_radios(lista,frame_ip,True,False,'left')
+        radio_ip_1, radio_ip_2 = radios
+        var_opcao_ip.set(lista[1])
+        input_ip = tk.Entry(frame_ip)
+        input_ip.pack(padx=10)
+        input_ip.insert(0, 'localhost')
+        input_ip.config(state='disabled')
+        radio_ip_1.config(command=lambda:[input_ip.config(state='normal'),input_ip.delete(0, 'end')])
+        radio_ip_2.config(command=lambda:[input_ip.delete(0, 'end'),input_ip.insert(0, 'localhost'),input_ip.config(state='disabled')])
+
+        # Porta Section
+        label_porta = tk.Label(frame_porta, text="Porta")
+        label_porta.pack(side=tk.LEFT, padx=10)
+        lista = ["Definir", '5432']
+        var_opcao_porta, radios = self.multi_radios(lista,frame_porta,True,False,'left')
+        radio_porta_1, radio_porta_2 = radios
+        var_opcao_porta.set(lista[1])
+        input_porta = tk.Entry(frame_porta)
+        input_porta.pack(side=tk.RIGHT, padx=10)
+        input_porta.insert(0, '5432')
+        input_porta.config(state='disabled')
+        radio_porta_1.config(command=lambda:[input_porta.config(state='normal'),input_porta.delete(0, 'end')])
+        radio_porta_2.config(command=lambda:[input_porta.delete(0, 'end'),input_porta.insert(0, '5432'),input_porta.config(state='disabled')])
+
         # Input de nome do banco
         label_nome_banco = tk.Label(frame_nome_banco, text="Nome do Banco")
-        label_nome_banco.pack(side=tk.LEFT, pady=10, padx=10)
+        label_nome_banco.pack(side=tk.LEFT, pady=5, padx=10)
         input_nome_banco = tk.Entry(frame_nome_banco, width=20)
-        input_nome_banco.pack(side=tk.RIGHT, pady=10, padx=10)
-        input_nome_banco.insert(0, self.banco.banco)
+        input_nome_banco.pack(side=tk.RIGHT, pady=5, padx=10)
+        input_nome_banco.insert(0, self.banco_provisorio.banco)
         # Input de usuário do banco
         label_usuario = tk.Label(frame_usuario, text="Usuario do banco")
-        label_usuario.pack(side=tk.LEFT, pady=10, padx=10)
+        label_usuario.pack(side=tk.LEFT, pady=5, padx=10)
         input_usuario = tk.Entry(frame_usuario, width=20)
-        input_usuario.pack(side=tk.RIGHT, pady=10, padx=10)
-        input_usuario.insert(0, self.banco.usuario)
-        # Input de senha do banco
+        input_usuario.pack(side=tk.RIGHT, pady=5, padx=10)
+        input_usuario.insert(0, self.banco_provisorio.usuario)
+        # Input de senha do bancos
         label_senha = tk.Label(frame_senha, text="Senha do banco")
-        label_senha.pack(side=tk.LEFT, pady=10, padx=10)
+        label_senha.pack(side=tk.LEFT, pady=5, padx=10)
         input_senha = tk.Entry(frame_senha, width=20)
-        input_senha.pack(side=tk.RIGHT, pady=10, padx=10)
-        input_senha.insert(0, self.banco.senha)
+        input_senha.pack(side=tk.RIGHT, pady=5, padx=10)
+        input_senha.insert(0, self.banco_provisorio.senha)
         # Botão para conectar com o banco de dados
-        conectar_ao_banco = lambda:[banco.iniciar(input_usuario.get(),input_senha.get(),input_nome_banco.get()), setattr(self,'banco',banco),func_proxima_tela()]
+        conectar_ao_banco = lambda:[banco.iniciar(input_usuario.get(),input_senha.get(),input_nome_banco.get(),input_porta.get(),input_ip.get()), setattr(self,'banco_provisorio',banco),func_proxima_tela()]
         botao_conexao = tk.Button(frame_conjunto,text="CONECTAR AO BANCO", command=conectar_ao_banco)
-        botao_conexao.pack()
+        botao_conexao.pack(pady=(10,0))
         return input_nome_banco, input_usuario, input_senha
 
 

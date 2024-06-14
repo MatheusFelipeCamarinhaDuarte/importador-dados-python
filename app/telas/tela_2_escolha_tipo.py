@@ -1,4 +1,3 @@
-from app.classes.janela import Janela
 from app.classes.telas import Telas
 
 class Tela_2(Telas):
