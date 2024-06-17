@@ -7,9 +7,6 @@ class Tela_2(Telas):
         Args:
             janela_principal (Janela): Janela principal da aplicação.
         """
-        # Importações
-        from tkinter import messagebox
-        
         #Limpa a tela anterior
         janela_principal = self.janela
         janela_principal.limpar()
@@ -20,8 +17,8 @@ class Tela_2(Telas):
         frame_superior.configure(pady=40)
         # Menu de ação das telas de migração
         produto = lambda:[setattr(self, 'migracao', 'PRODUTOS'), self.ir_para_proxima_tela()]
-        estoque = lambda:[messagebox.showerror('Error','Módulo ESTOQUE ainda não implantado!')]
-        clientes = lambda:[messagebox.showerror('Error','Módulo CLIENTES ainda não implantado!')]
+        estoque = lambda:[self.erros('Error','Módulo ESTOQUE ainda não implantado!')]
+        clientes = lambda:[self.erros('Error','Módulo CLIENTES ainda não implantado!')]
         # cliente = lambda:ir_para_proxima_tela(janela_principal, migracao="CLIENTES")
         # estoque = lambda:ir_para_proxima_tela(janela_principal, migracao="ESTOQUE")
         
@@ -33,11 +30,7 @@ class Tela_2(Telas):
         
 
     def ir_para_proxima_tela(self):
-        # atributo = 'migracao'
-        # valor = 'PRODUTO'
-        # setattr(janela_principal, atributo, valor)
         from app.telas.tela_3_escolha_sistema import Tela_3
         migracao = self.migracao
         janela_principal = self.janela
         Tela_3(janela_principal,migracao)
-

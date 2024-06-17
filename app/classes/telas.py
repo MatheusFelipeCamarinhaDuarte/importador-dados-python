@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from tkinter import messagebox
+import tkinter as tk
 
 try:
     from app.classes.janela import Janela
@@ -22,10 +24,17 @@ class Telas(ABC):
         self.extensao = extensao
         # Matriz
         self.matriz = matriz
-        #Banco de dados de origem
+        # Banco de dados de origem
         self.banco_origem = banco_origem
-        #Banco de dados de destino
+        # Banco de dados de destino
         self.banco_destino = banco_destino
+        # Message boxs
+        self.erros = messagebox.showerror
+        self.infos = messagebox.showinfo
+        self.aviso = messagebox.showwarning
+        self.askyesno = messagebox.askyesno
+        # tkinter
+        self.tk = tk
         # Janela
         if janela:
             self.janela = janela

@@ -7,7 +7,6 @@ class Tela_3(Telas):
         Args:
             janela_principal (Janela): Janela principal vinda da tela de escolha
         """
-        import tkinter as tk
         from app.telas.tela_2_escolha_tipo import Tela_2
         janela_principal = self.janela
         #Limpa a tela anterior
@@ -20,7 +19,7 @@ class Tela_3(Telas):
         frame_superior, frame_inferior = janela_principal.duplo_frame(janela_principal)
         
         # Título do frame superior
-        label_titulo_pagina = tk.Label(frame_superior, text=f"Importação de {migracao.lower()}:")
+        label_titulo_pagina = self.tk.Label(frame_superior, text=f"Importação de {migracao.lower()}:")
         label_titulo_pagina.pack()
 
         # Criação do frame esquerdo e direito para separa sistema de origem e sistema de destino
@@ -29,10 +28,10 @@ class Tela_3(Telas):
         frame_sistema_destino.config(padx=20)
         
         # Criação dos labels explicando qual é o sistema de origem e qual o sistema de destino
-        label_titulo_origem = tk.Label(frame_sistema_origem, text="Escolha o sistema de origem:")
-        label_titulo_origem.pack(side=tk.TOP,anchor=tk.NW)
-        label_titulo_destino = tk.Label(frame_sistema_destino, text="Escolha o sistema de destino:")
-        label_titulo_destino.pack(side=tk.TOP,anchor=tk.NW)
+        label_titulo_origem = self.tk.Label(frame_sistema_origem, text="Escolha o sistema de origem:")
+        label_titulo_origem.pack(side=self.tk.TOP,anchor=self.tk.NW)
+        label_titulo_destino = self.tk.Label(frame_sistema_destino, text="Escolha o sistema de destino:")
+        label_titulo_destino.pack(side=self.tk.TOP,anchor=self.tk.NW)
 
         # Criação dos radio botões de sistema de origem e sistema de destino
         sistemas_origem = ["Autosystem","Posto Fácil", "Seller", "Outros"]
@@ -47,7 +46,7 @@ class Tela_3(Telas):
         
         # Criando botão e rodapé dinâmico do frame inferior
         proximo = lambda:[setattr(self,'sistema_origem',var_origem.get()), setattr(self,'sistema_destino',var_destino.get()),self.ir_para_proxima_tela()]
-        button_submit = tk.Button(frame_inferior, text="Proximo", command=proximo)
+        button_submit = self.tk.Button(frame_inferior, text="Proximo", command=proximo)
         button_submit.pack() # Inserindo o botão de próximo
         tela_anterior = lambda:Tela_2(janela_principal)
         janela_principal.rodape(frame_inferior,tela_anterior) # Rodapé dinâmico

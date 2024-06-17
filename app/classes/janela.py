@@ -208,7 +208,6 @@ class Janela(tk.Tk):
         Returns:
             Tuple[tk.Entry]: retorna os 3 inputs
         """
-        banco = banco_pre_estabelecido
         frame_conjunto = tk.Frame(frame_pertencente)
         frame_conjunto.pack()
         frame_ip = tk.Frame(frame_conjunto)
@@ -276,9 +275,23 @@ class Janela(tk.Tk):
         input_senha.pack(side=tk.RIGHT, pady=5, padx=10)
         input_senha.insert(0, banco_pre_estabelecido.senha)
         # Botão para conectar com o banco de dados
-        conectar_ao_banco = lambda:[banco.iniciar(input_usuario.get(),input_senha.get(),input_nome_banco.get(),input_porta.get(),input_ip.get()), setattr(self,'banco_provisorio',banco),func_proxima_tela()]
+        conectar_ao_banco = lambda:[banco_pre_estabelecido.iniciar(input_usuario.get(),input_senha.get(),input_nome_banco.get(),input_porta.get(),input_ip.get()), setattr(self,'banco_provisorio',banco_pre_estabelecido),func_proxima_tela()]
         botao_conexao = tk.Button(frame_conjunto,text="CONECTAR AO BANCO", command=conectar_ao_banco)
         botao_conexao.pack(pady=(10,0))
         return input_nome_banco, input_usuario, input_senha
 
+    def link(self, texto_link:tk.Label, link):
+        """
+        Abre um navegador da web para o link fornecido quando o rótulo é clicado.
 
+        Parâmetros:
+        texto_link (tk.Label): O widget de rótulo que será clicado para abrir o link.
+        link (str): A URL a ser aberta no navegador da web.
+
+        Retorna:
+        None
+        """
+        import webbrowser
+        texto_link.config(foreground='blue', underline=True)
+        texto_link.bind("<Button-1>", lambda event: webbrowser.open(link))
+        

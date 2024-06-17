@@ -8,12 +8,7 @@ class Tela_4(Telas):
         Args:
             janela_principal (Janela): Janela principal vinda do tela de escolha de sistema
         """
-        import tkinter as tk
-        import webbrowser
-        from tkinter import messagebox
         from app.telas.tela_3_escolha_sistema import Tela_3
-        from app.telas.tela_5_conectar_banco import Tela_5
-        from app.classes.matriz import Matriz
         
         janela_principal = self.janela
         # Oculta a primeira janela e criar a nova
@@ -29,13 +24,13 @@ class Tela_4(Telas):
 
         
         # Campo do banco de dados 
-        label_arquivos = tk.Label(frame_banco, text=f"Importação via Banco de dados de origem:", font=2)
+        label_arquivos = self.tk.Label(frame_banco, text=f"Importação via Banco de dados de origem:", font=2)
         label_arquivos.pack()
 
         # proxima_tela_com_banco = lambda:messagebox.showerror("Erro","Módulo ainda não implantado")
         janela_principal.layout_de_conexao(frame_banco,self.ir_para_proxima_tela_com_banco,self.banco_origem)
         # Campo via relatórios
-        label_arquivos = tk.Label(frame_arquivos, text=f"Importação via relatório:", font=2)
+        label_arquivos = self.tk.Label(frame_arquivos, text=f"Importação via relatório:", font=2)
         label_arquivos.pack(pady=(7,0))
         # Criando os radio buttons para extensões
         extensoes_aceitas = ['.xml', '.xls', '.csv']
@@ -45,18 +40,18 @@ class Tela_4(Telas):
         
         # Botão de selecionar arquivos
         proximo = lambda:[setattr(self,'extensao',var_extensoes.get()),self.ir_para_proxima_tela()]
-        button_selecionar = tk.Button(frame_arquivos, text="Selecionar Arquivo", command=proximo)
+        button_selecionar = self.tk.Button(frame_arquivos, text="Selecionar Arquivo", command=proximo)
         button_selecionar.pack()
 
         
         # Frame com link para tirar dúvidas
-        sub_frame = tk.Frame(frame_inferior)
-        sub_frame.pack(anchor=tk.S)
-        texto = tk.Label(sub_frame, height=2, wraplength=250,text=f"como retirar relatorios no formato correto de dentro do {self.sistema_origem}?", )
-        texto.pack(anchor=tk.S)
+        sub_frame = self.tk.Frame(frame_inferior)
+        sub_frame.pack(anchor=self.tk.S)
+        texto = self.tk.Label(sub_frame, height=2, wraplength=250,text=f"como retirar relatorios no formato correto de dentro do {self.sistema_origem}?", )
+        texto.pack(anchor=self.tk.S)
         link = "https://google.com"
-        texto.config(foreground='blue', underline=True)
-        texto.bind("<Button-1>", lambda event: webbrowser.open(link))
+        self.janela.link(texto,link)        
+        
         # Rodapé dinâmico
         tela_anterior = lambda:Tela_3(janela_principal,self.migracao)
         janela_principal.rodape(frame_inferior,tela_anterior)
@@ -81,14 +76,11 @@ class Tela_4(Telas):
     def ir_para_proxima_tela_com_banco(self):
         from app.telas.tela_5_conectar_banco import Tela_5
         from app.classes.matriz import Matriz
-        from app.classes.banco_de_dados import Banco_de_dados
         janela_principal = self.janela
         migracao = self.migracao
         sistema_origem = self.sistema_origem
         sistema_destino = self.sistema_destino
         self.extensao = 'banco'
-        self.banco_origem = self.janela.banco_provisorio
-        self.janela.banco_provisorio = Banco_de_dados()
         self.matriz = Matriz(migracao,sistema_origem,sistema_destino,self.extensao).filtro_de_importacao()
         if self.matriz:
             Tela_5(janela_principal,migracao,sistema_origem,sistema_destino,self.extensao,self.matriz)
