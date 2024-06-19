@@ -42,7 +42,7 @@ class Tela_3(Telas):
         var_destino, lista_radio_destino = janela_principal.multi_radios(sistemas_destino,frame_sistema_destino)
         as_des, pf_des = lista_radio_destino
         
-        janela_principal.desativar_radio(as_or,pf_or,outros_or,pf_des) # Desativando radios ainda não implementados
+        janela_principal.desativar_radio(as_or,outros_or,pf_des) # Desativando radios ainda não implementados
         
         # Criando botão e rodapé dinâmico do frame inferior
         proximo = lambda:[setattr(self,'sistema_origem',var_origem.get()), setattr(self,'sistema_destino',var_destino.get()),self.ir_para_proxima_tela()]

@@ -22,7 +22,6 @@ class Matriz():
         """
         migracao = self.migracao
         sistema_origem = self.sistema_origem 
-        sistema_destino = self.sistema_destino 
         extensao = self.extensao
         banco = self.banco
         mensagem = lambda: messagebox.showerror("Erro", f"Tipo de importação >>{migracao.upper()}<< ERRADA. Sistema de Origem >>{sistema_origem.upper()}<< ERRADO. Tipo de extenção >>{extensao.upper()}<< ERRADA.") 
@@ -32,9 +31,8 @@ class Matriz():
             case 'Seller': return self.Seller(migracao,extensao,banco).processar_dados()
             case 'outros': mensagem()
             case _: mensagem()
-
     class Seller:
-        def __init__(self, migracao:str = '', extensao:str = '', banco:str = None):
+        def __init__(self, migracao:str = '', extensao:str = '', banco:Banco_de_dados = None):
             self.migracao = migracao
             self.extensao = extensao
             self.banco = banco
@@ -45,9 +43,6 @@ class Matriz():
                 case 'PRODUTOS': 
                     match self.extensao:
                         case '.xml': return self.produto_xml()
-                        case '.csv':  mensagem()
-                        case '.xls':  mensagem()
-                        case 'banco': mensagem()
                         case _:       mensagem()
                 case 'CLIENTES': 
                     match self.extensao:
@@ -134,14 +129,46 @@ class Matriz():
                     linha_da_nova_matriz.append('99') # 14 - cst_cofins_entrada (int)
                     
                     nova_matriz.append(linha_da_nova_matriz)
-                os.remove(xml_file)
+                if os.path.exists(xml_file):
+                    os.remove(xml_file)
                 # Retorna nova a matriz
                 return nova_matriz
 
 
             except:
                 messagebox.showerror("Erro", f'O XML apontado não é válido! olha a aba "Como retirar relatórios no formato correto" para obter o arquivo certo.')
-                os.remove(xml_file)
+                if os.path.exists(xml_file):
+                    os.remove(xml_file)
+
+        def produto_banco(self):
+            variavel = False
+            if variavel:
+                return
+            else:
+                if self.banco:
+                    banco = self.banco
+                    query = 'SELECT codigo_barra,nome,grupo_produto_id,XXX,preco_unit,XXX,unid_med,XXX,XXX,codigo_ncm FROM dataload.produto' 
+                    """
+                    - 0 - codigo de barras (str - número)
+                    - 1 - descricao do produto (str)
+                    - 2 - grupo (grid)
+                    - 3 - subgrupo (grid) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                    - 4 - preço de venda (double)
+                    - 5 - preço de compra (double) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                    - 6 - unidade de medida de compra (abreviação)
+                    - 7 - unidade de medida de venda (abreviação) XXXXXXXXXXXXXXXXXXX
+                    - 8 - fator de conversao (int) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                    - 9 - codigo ncm (xxxx.xx.xx)
+                    - 10 - tributacao (int)
+                    - 11 - cst_pis (int)
+                    - 12 - cst_cofins (int)
+                    - 13 - cst_pis_entrada (int)
+                    - 14 - cst_cofins_entrada (int)
+                    """ 
+                    produtos = banco.executar_query(query)
+                    
+                else: return
+
     class Posto_facil:
         def __init__(self, migracao:str = '', extensao:str = '', banco:str = None):
             self.migracao = migracao

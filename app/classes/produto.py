@@ -12,14 +12,12 @@ class Produto():
         self.matriz = matriz
         self.banco = banco
     
-    def cadastrar_produto(self,matriz:list[list]) -> list[list]:
-        pass
     
     def tratamento_de_matriz(self):
         pass
     
     
-    def cadastrar_produtos(self,substituir:bool=False) -> Tuple[list[list[any]],int,int,int]:
+    def cadastrar_produto(self,substituir:bool=False) -> Tuple[list[list[any]],int,int,int]:
         """Método para cadastrar produtos a partir de uma matriz igual a todos. O formato desta matriz é:
         
         formato ideal:
@@ -63,7 +61,7 @@ class Produto():
             lista_erros = []
             lista_tributacoes = []
             contador_produtos_totais = 0
-            result = self.banco.executar_query(f"SELECT * FROM tributacao WHERE tributacao = 0;")
+            result = self.banco.executar_query(f"SELECT codigo FROM tributacao WHERE tributacao = 0;")
             resultado_cd_tributacao = self.banco.executar_query(f"SELECT codigo FROM tributacao;")
             for item in resultado_cd_tributacao:
                 lista_tributacoes.append(item[0])
@@ -99,7 +97,6 @@ class Produto():
                     else:
                         id_erro = '###'
                         importado = 'Não importado'
-                    # print(f"Produto {nome} ERRADO!")
                     lista_erros.append([id_erro,nome,codigo_barra,preco_venda,custo_medio,importado,motivo_erro])            
             conexao.commit()
                         
@@ -127,14 +124,14 @@ class Produto():
         for item in grupo_dict:
             grupo_dict[item] = list(grupo_dict[item])
         
-        grupo_com_grid, subgrupo_com_grid = self.cadastrar_grupos_produtos(grupo_dict)
+        grupo_com_grid, subgrupo_com_grid = self.cadastrar_grupo_produto(grupo_dict)
         
         for linha in matriz:
             linha[2] = grupo_com_grid[linha[2]]
             linha[3] = subgrupo_com_grid[linha[3]]
         return matriz
 
-    def cadastrar_grupos_produtos(self,dicionario:dict) -> Tuple[dict,dict]:
+    def cadastrar_grupo_produto(self,dicionario:dict) -> Tuple[dict,dict]:
         """Este métodos, de acordo com um dicionário onde os grupos são
         a chave e os subgrupos são os valores, faz a inserção dos grupos
         e sub grupos e devolve um grid
@@ -154,25 +151,25 @@ class Produto():
         subgrupo_com_grid = {}
         for grupo, subgrupos in dicionario.items():
             self.banco.executar_query(f"INSERT INTO grupo_produto (codigo,nome,flag,estoque_negativo_deposito) VALUES ({id},'{grupo}','A',true);")
-            result1 = self.banco.executar_query(f"SELECT * FROM grupo_produto WHERE codigo = {id};")
-            grid_grupo = result1[0][3]
+            resultado_banco = self.banco.executar_query(f"SELECT grid FROM grupo_produto WHERE codigo = {id};")
+            grid_grupo = resultado_banco[0][0]
             grupo_com_grid[grupo] = grid_grupo
             for subgrupo in subgrupos:
                 self.banco.executar_query(f"INSERT INTO subgrupo_produto (codigo,nome,grupo,flag) VALUES ({id_sub},'{subgrupo}',{grid_grupo},'A');")
-                result1 = self.banco.executar_query(f"SELECT * FROM subgrupo_produto WHERE codigo = {id_sub};")
-                grid_subgrupo = result1[0][4]
+                resultado_banco = self.banco.executar_query(f"SELECT grid FROM subgrupo_produto WHERE codigo = {id_sub};")
+                grid_subgrupo = resultado_banco[0][0]
                 subgrupo_com_grid[subgrupo] = grid_subgrupo
                 id_sub += 1
             id += 1
         
-        resultado = self.banco.executar_query(f"SELECT grid FROM deposito WHERE codigo = 100;")
+        resultado_banco = self.banco.executar_query(f"SELECT grid FROM deposito WHERE codigo = 100;")
         try:
-            grid_depoisto = resultado[0][0]
+            grid_depoisto = resultado_banco[0][0]
             self.banco.executar_query(f"UPDATE deposito SET estoque_negativo = false WHERE codigo = 100;")
         except:
             self.banco.executar_query(f"INSERT INTO deposito (codigo,nome,empresa,flag) VALUES (100,'DEPOSITO LOJA',1,'A');")
-            resultado = self.banco.executar_query(f"SELECT grid FROM deposito WHERE codigo = 100;")
-            grid_depoisto = resultado[0][0]
+            resultado_banco = self.banco.executar_query(f"SELECT grid FROM deposito WHERE codigo = 100;")
+            grid_depoisto = resultado_banco[0][0]
         # self.cursor.execute("DELETE FROM deposito_grupo_produto WHERE codigo = 100;")
             self.banco.executar_query(f"DELETE FROM deposito_grupo_produto WHERE deposito = ({grid_depoisto});")
         for nome_grupo,grid_dos_grupos in grupo_com_grid.items():

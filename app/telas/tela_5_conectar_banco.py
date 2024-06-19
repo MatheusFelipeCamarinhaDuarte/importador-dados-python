@@ -26,26 +26,24 @@ class Tela_5(Telas):
         # Rodape
         tela_anterior = lambda:Tela_4(janela_principal,self.migracao,self.sistema_origem,self.sistema_destino)
         janela_principal.rodape(frame_inferior,tela_anterior)
-        carregar_aqui = lambda: [setattr(self,'banco_destino', janela_principal.banco_provisorio),self.carregar_pagina()]
+        
+        # Conectar com o banco
+        carregar_aqui = lambda: [self.carregar_pagina()]
         janela_principal.layout_de_conexao(frame_conexao,carregar_aqui, self.banco_destino)
 
+        # Inserção de dados no banco
         dicionario_botoes = {f'SUBISTITUIR {self.migracao}':lambda:[],f'ADICIONAR {self.migracao}':lambda:[]}
         substituir, adicionar = janela_principal.multi_botoes(dicionario_botoes,frame_inserir,20,1,10)
         substituir.config(state=self.tk.DISABLED)
         adicionar.config(state=self.tk.DISABLED)
         if self.banco_destino.cursor:
-            substituir.config(state=self.tk.NORMAL,command=lambda:[self.ir_para_proxima_tela()])
+            substituir.config(state=self.tk.NORMAL,command=lambda:[self.ir_para_proxima_tela(True)])
             adicionar.config(state=self.tk.NORMAL,command=lambda:[self.erros('Error','Módulo ainda não implantado!')])
 
-    def ir_para_proxima_tela(self):
+    def ir_para_proxima_tela(self,substituir:bool):
         from app.classes.produto import Produto
-
-        
-        matriz = self.matriz
-        substituir = True
-        print(self.banco_destino.banco)
-        produto = Produto(matriz,self.banco_destino)
-        lista_erros, produtos_totais_adicionados,contador_produtos_totais, produtos_adicionados = produto.cadastrar_produtos(substituir=substituir)
+        produto = Produto(self.matriz,self.banco_destino)
+        lista_erros, produtos_totais_adicionados,contador_produtos_totais, produtos_adicionados = produto.cadastrar_produto(substituir)
         
         mensagem = self.tk.Toplevel()
         if lista_erros != []:

@@ -24,20 +24,26 @@ class Tela_4(Telas):
 
         
         # Campo do banco de dados 
-        label_arquivos = self.tk.Label(frame_banco, text=f"Importação via Banco de dados de origem:", font=2)
-        label_arquivos.pack()
-
-        # proxima_tela_com_banco = lambda:messagebox.showerror("Erro","Módulo ainda não implantado")
-        janela_principal.layout_de_conexao(frame_banco,self.ir_para_proxima_tela_com_banco,self.banco_origem)
+        lista_com_banco = []
+        if self.sistema_origem.upper() in lista_com_banco:    
+            label_arquivos = self.tk.Label(frame_banco, text=f"Importação via Banco de dados de origem:", font=2)
+            label_arquivos.pack()
+            proxima_tela_com_banco = lambda: [setattr(self,'extensao','banco'),self.ir_para_proxima_tela()]
+            janela_principal.layout_de_conexao(frame_banco,proxima_tela_com_banco,self.banco_origem)
+        
+        
         # Campo via relatórios
         label_arquivos = self.tk.Label(frame_arquivos, text=f"Importação via relatório:", font=2)
         label_arquivos.pack(pady=(7,0))
         # Criando os radio buttons para extensões
         extensoes_aceitas = ['.xml', '.xls', '.csv']
         var_extensoes,lista_radio_extensoes = janela_principal.multi_radios(extensoes_aceitas, frame_arquivos,True,False)   
-        xml,xls,csv = lista_radio_extensoes   
-        janela_principal.desativar_radio(xls,csv) # Desativando opções ainda não implantadas
+        xml,xls,csv = lista_radio_extensoes
         
+        if self.sistema_origem.upper() == "SELLER":
+            janela_principal.desativar_radio(xls,csv) # Desativando opções ainda não implantadas
+        if self.sistema_origem.upper() == "POSTO FÁCIL":
+            janela_principal.desativar_radio(xml,xls,csv) # Desativando opções ainda não implantadas
         # Botão de selecionar arquivos
         proximo = lambda:[setattr(self,'extensao',var_extensoes.get()),self.ir_para_proxima_tela()]
         button_selecionar = self.tk.Button(frame_arquivos, text="Selecionar Arquivo", command=proximo)
@@ -62,27 +68,13 @@ class Tela_4(Telas):
         from app.classes.matriz import Matriz
 
         janela_principal = self.janela
-        migracao = self.migracao
-        sistema_origem = self.sistema_origem
-        sistema_destino = self.sistema_destino
-        extensao = self.extensao
-        if (janela_principal.verifica_radio(extensao)):
-            # matriz = janela_principal.selecionar_arquivo(migracao,sistema_origem,sistema_destino,extensao)
-            captura = Manipular_arquivos().selecionar_arquivo(extensao)
-            if captura:
-                matriz = Matriz(migracao,sistema_origem,sistema_destino,extensao).filtro_de_importacao()
-                if matriz:
-                    Tela_5(janela_principal,migracao,sistema_origem,sistema_destino,extensao,matriz)
-    def ir_para_proxima_tela_com_banco(self):
-        from app.telas.tela_5_conectar_banco import Tela_5
-        from app.classes.matriz import Matriz
-        janela_principal = self.janela
-        migracao = self.migracao
-        sistema_origem = self.sistema_origem
-        sistema_destino = self.sistema_destino
-        self.extensao = 'banco'
-        self.matriz = Matriz(migracao,sistema_origem,sistema_destino,self.extensao).filtro_de_importacao()
+        if self.extensao != 'banco':
+            if (janela_principal.verifica_radio(self.extensao)):
+                Manipular_arquivos().selecionar_arquivo(self.extensao)
+            else: return None
+        
+        self.matriz = Matriz(self.migracao,self.sistema_origem,self.sistema_destino,self.extensao, self.banco_origem).filtro_de_importacao()
         if self.matriz:
-            Tela_5(janela_principal,migracao,sistema_origem,sistema_destino,self.extensao,self.matriz)
+            Tela_5(janela_principal,self.migracao,self.sistema_origem,self.sistema_destino,self.extensao,self.matriz)
         else:
-            print("HOJE NÃO MANÉ")
+            self.erros("Erro", f"Este módulo ainda não foi implantado.")
