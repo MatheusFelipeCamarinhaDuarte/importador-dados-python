@@ -13,3 +13,5 @@ __pycache__/
 app/classes/__pycache__/
 app/telas/__pycache__/
 modificacoes.txt
+combobox.py
+app\telas\tela_4_intermediaria_filial.py
