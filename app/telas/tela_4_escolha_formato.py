@@ -68,7 +68,7 @@ class Tela_4(Telas):
 
     def ir_para_proxima_tela(self):
         from app.telas.tela_5_conectar_banco import Tela_5
-        from app.telas.tela_4_intermediaria_escolha_filial import Tela_intermediaria
+        from app.icons.tela_4 import Tela_intermediaria
         from app.classes.manipular_arquivos import Manipular_arquivos
         from app.classes.matriz import Matriz
 
