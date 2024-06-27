@@ -15,7 +15,6 @@ class Janela(tk.Tk):
     def __init__(self):
         """Método de criação de tela personalizada"""
         import os
-        from app.classes.banco_de_dados import Banco_de_dados
         super().__init__()
         # Titulo inicial
         self.title("Matheus Solutions")
@@ -195,7 +194,7 @@ class Janela(tk.Tk):
                 return False 
         return True
 
-    def layout_de_conexao(self,frame_pertencente:tk.Frame,func_proxima_tela: Callable[[],None], banco_pre_estabelecido:Banco_de_dados = Banco_de_dados()) -> tk.Entry:
+    def layout_de_conexao(self,frame_pertencente:tk.Frame,func_proxima_tela: Callable[[],None], banco_pre_estabelecido:Banco_de_dados = Banco_de_dados(), dba:str='postgres') -> tk.Entry:
         """Método com o intuito de realizar o layout de conexao
         com o banco de dados (Nome do banco,usuário, senha).add()
 
@@ -256,6 +255,10 @@ class Janela(tk.Tk):
 
         # Input de nome do banco
         label_nome_banco = tk.Label(frame_nome_banco, text="Nome do Banco")
+        if dba == 'firebird':
+            label_nome_banco = tk.Label(frame_nome_banco, text="URL do banco")
+            frame_ip.destroy()
+            frame_porta.destroy()
         label_nome_banco.pack(side=tk.LEFT, pady=5, padx=10)
         input_nome_banco = tk.Entry(frame_nome_banco, width=20)
         input_nome_banco.pack(side=tk.RIGHT, pady=5, padx=10)
@@ -273,7 +276,11 @@ class Janela(tk.Tk):
         input_senha.pack(side=tk.RIGHT, pady=5, padx=10)
         input_senha.insert(0, banco_pre_estabelecido.senha)
         # Botão para conectar com o banco de dados
-        conectar_ao_banco = lambda:[banco_pre_estabelecido.iniciar(input_usuario.get(),input_senha.get(),input_nome_banco.get(),input_porta.get(),input_ip.get()), setattr(self,'banco_provisorio',banco_pre_estabelecido),func_proxima_tela()]
+        if dba == 'postgres':
+            conectar_ao_banco = lambda:[banco_pre_estabelecido.iniciar(input_usuario.get(),input_senha.get(),input_nome_banco.get(),input_porta.get(),input_ip.get()), func_proxima_tela()]
+        if dba == 'firebird':
+            conectar_ao_banco = lambda:[banco_pre_estabelecido.iniciar_firebird(input_usuario.get(),input_senha.get(),input_nome_banco.get()), func_proxima_tela()]
+            
         botao_conexao = tk.Button(frame_conjunto,text="CONECTAR AO BANCO", command=conectar_ao_banco)
         botao_conexao.pack(pady=(10,0))
         return input_nome_banco, input_usuario, input_senha

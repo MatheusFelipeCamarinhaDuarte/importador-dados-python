@@ -24,12 +24,16 @@ class Tela_4(Telas):
 
         
         # Campo do banco de dados 
-        lista_com_banco = []
-        if self.sistema_origem.upper() in lista_com_banco:    
+        lista_com_banco = ['Posto Fácil']
+        if self.sistema_origem in lista_com_banco:    
             label_arquivos = self.tk.Label(frame_banco, text=f"Importação via Banco de dados de origem:", font=2)
             label_arquivos.pack()
             proxima_tela_com_banco = lambda: [setattr(self,'extensao','banco'),self.ir_para_proxima_tela()]
-            janela_principal.layout_de_conexao(frame_banco,proxima_tela_com_banco,self.banco_origem)
+            dba = 'postgres'
+            if self.sistema_origem == "Posto Fácil":
+                dba = 'firebird'
+            
+            janela_principal.layout_de_conexao(frame_banco,proxima_tela_com_banco,self.banco_origem,dba)
         
         
         # Campo via relatórios
@@ -64,17 +68,23 @@ class Tela_4(Telas):
 
     def ir_para_proxima_tela(self):
         from app.telas.tela_5_conectar_banco import Tela_5
+        from app.telas.tela_4_intermediaria_escolha_filial import Tela_intermediaria
         from app.classes.manipular_arquivos import Manipular_arquivos
         from app.classes.matriz import Matriz
 
         janela_principal = self.janela
-        if self.extensao != 'banco':
+        if self.extensao != 'banco':        # Verifica se a importação é feita via banco ou arquivo.
             if (janela_principal.verifica_radio(self.extensao)):
-                Manipular_arquivos().selecionar_arquivo(self.extensao)
+                Manipular_arquivos().selecionar_arquivo(self.extensao)  # Captura o arquivo.
+                self.matriz = Matriz(self.migracao,self.sistema_origem,self.sistema_destino,self.extensao, self.banco_origem).filtro_de_importacao() # Gera uma matriz a depender da extensão
+                if self.matriz:
+                    # Se tiver a matriz, vai para a próxima tela.
+                    Tela_5(janela_principal,self.migracao,self.sistema_origem,self.sistema_destino,self.extensao,self.matriz)
+                else:
+                    self.erros("Erro", f"Este módulo ainda não foi implantado.")
             else: return None
         
-        self.matriz = Matriz(self.migracao,self.sistema_origem,self.sistema_destino,self.extensao, self.banco_origem).filtro_de_importacao()
-        if self.matriz:
-            Tela_5(janela_principal,self.migracao,self.sistema_origem,self.sistema_destino,self.extensao,self.matriz)
+            
         else:
+            Tela_intermediaria(self.janela,self.migracao,self.sistema_origem, self.sistema_destino, self.extensao, self.matriz, self.banco_origem)
             self.erros("Erro", f"Este módulo ainda não foi implantado.")

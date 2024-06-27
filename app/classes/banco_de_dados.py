@@ -55,6 +55,44 @@ class Banco_de_dados():
             self.host = ''
             messagebox.showerror("Erro", "Os dados passados de usuário, senha ou banco estão incorretos.")
 
+    def iniciar_firebird(self,usuario:str,senha:str,banco:str) -> None:
+        """Método para inciar o banco de dados a partir de usuáriom senha e nome do banoc de dados
+
+        Args:
+            janela_principal (Janela): Janela principal da aplicação
+            usuario (str): Nome do usuário passado por meio de input
+            senha (str): senha do usuário passado por meio de input
+            banco (str): Nome do banco passado por meio de input
+
+        Returns:
+            conecao: retorna uma conexão com o banco de dados especificado.
+        """
+        import fdb
+        self.usuario = usuario
+        self.senha = senha
+        self.banco = banco
+
+        try:
+            dns = 'localhost:'+banco.replace("\\", "\\\\")
+            conn1 = fdb.connect(
+                user=usuario,
+                password=senha,
+                dsn=dns
+            )
+            cur1 = conn1.cursor()
+            self.cursor = cur1 
+            self.conexao = conn1
+            messagebox.showinfo("Sucesso", "Conexão estabelecida com sucesso")
+        except:
+            self.cursor = None 
+            self.conexao = None
+            self.usuario = ''
+            self.senha = ''
+            self.banco = ''
+            self.porta = ''
+            self.host = ''
+            messagebox.showerror("Erro", "Os dados passados de usuário, senha ou banco estão incorretos.")
+
     def finalizar(self) -> None:
         """Método para o fechamento correto do banco de dados."""
         self.conexao.commit()
@@ -65,13 +103,15 @@ class Banco_de_dados():
 
     def executar_query(self, query):
         """Método para executar uma query no banco de dados"""
+        cursor = self.cursor
         try:
-            self.cursor.execute(query)
+            cursor.execute(query)
             self.conexao.commit()
         except Exception as e:
             print(e)
         try:
-            resultado = self.cursor.fetchall()
+            resultado = cursor.fetchall()
+            print(resultado)
         except:
             resultado = None
         return resultado

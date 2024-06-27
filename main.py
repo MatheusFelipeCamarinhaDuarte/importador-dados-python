@@ -4,8 +4,9 @@ from app.telas.tela_1_inicial import Tela_1
 
 
 def main():
-    # app = tela_inicial()
-    # app.mainloop()
+    # app = Tela_1()
+    # janela = app.carregar_pagina()
+    # janela.mainloop()
 
     conectado = conexao()
     if conectado == True:

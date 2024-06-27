@@ -17,7 +17,7 @@ class Correcao():
             'Í': 'I', 'Ì': 'I', 'Î': 'I', 'Ï': 'I', 'í': 'i', 'ì': 'i', 'î': 'i', 'ï': 'i',
             'Õ': 'O', 'Ô': 'O', 'Ó': 'O', 'Ò': 'O', 'Ö': 'O', 'õ': 'o', 'ô': 'o', 'ó': 'o', 'ò': 'o', 'ö': 'o',
             'Ú': 'U', 'Ù': 'U', 'Û': 'U', 'Ü': 'U', 'ú': 'u', 'ù': 'u', 'û': 'u', 'ü': 'u',
-            'Ç': 'C', 'ç': 'c',',':''
+            'Ç': 'C', 'ç': 'c',',':'','/':' '
         }
         for original, replacement in substitutions.items():
             nome = nome.replace(original, replacement)
@@ -118,9 +118,102 @@ class Correcao():
             case _:
                 return False
 
-    def identificar_kit(unidade):
+    def identificar_kit(self,unidade):
         if unidade == 'KIT':
             return True
+
+    def corrigir_unidade_posto_facil(self,unidade = 7):
+        """
+        1 -> CX
+        2 -> DUZ
+        3 -> KG
+        4 -> LTS
+        5 -> M³
+        6 -> MT
+        7 -> UN
+        """
+        match str(unidade):
+            case '1': return "CX"
+            case '2': return "PCT"
+            case '3': return "KG"
+            case '4': return "L"
+            case '5': return "M3"
+            case '6': return "M2"
+            case '7': return "UN"
+            case _: return "UN"
+            
+    def corrigir_tributacao_posto_facil(self,tributacao) -> str:
+        """
+        1 - Produto tributado (000 no postgres)
+        2 - sub-tributado (060 no postgres)
+        3 - Isenta (040 no postgres)
+        4 - Outros (090 no postgres)
+        5 - Outros (090 no postgres)
+        """
+        match str(tributacao):
+            case '1': return "000"
+            case '2': return "060"
+            case '3': return "040"
+            case '4': return "090"
+            case '5': return "090"
+            case _: return "090"
+            
+    def corrigir_cst_posto_facil(self,cst,tipo:str = 'saida'):
+        """CST DE SAIDA
+        1 -> 01 OPERAÇÃO TRIBUTÁVEL COM ALÍQUOTA BÁSICA
+        2 -> 04 OPERAÇÃO TRIBUTÁVEL MONOFÁSICA - REVENDA A ALÍQUOTA ZERO
+        3 -> 05 OPERAÇÃO TRIBUTÁVEL POR SUBSTITUIÇÃO TRIBUTÁRIA
+        4 -> 06 OPERAÇÃO TRIBUTÁVEL A ALÍQUOTA ZERO
+        5 -> 07 OPERAÇÃO ISENTA DA CONTRIBUIÇÃO
+        6 -> 08 OPERAÇÃO SEM INCIDÊNCIA DA CONTRIBUIÇÃO
+        7 -> 49 OUTRAS OPERAÇÕES DE SAÍDA
+        8 -> 99 OUTRAS OPERAÇÕES
+        9 -> 02 OPERAÇÃO TRIBUTÁVEL COM ALÍQUOTA DIFERENCIADA
+        
+        CST DE ENTRADA
+        12 -> 50 OPERAÇÃO COM DIREITO A CRÉDITO
+        27 -> 70 OPERAÇÃO DE AQUISIÇÃO SEM DIREITO A CRÉDITO
+        28 -> 71 OPERAÇÃO DE AQUISIÇÃO COM ISENÇÃO
+        32 -> 75 OPERAÇÃO DE AQUISIÇÃO POR SUBSTIUIÇÃO TRIBUTÁRIA
+        33 -> 98 OUTRAS OPERAÇÕES DE ENTRADA
+        """
+        if tipo.upper() == 'ENTRADA':
+            match str(cst):
+                case '12': return '50'
+                case '27': return '70'
+                case '28': return '71'
+                case '32': return '75'
+                case '33': return '98' 
+                case _: return '98'
+        elif tipo.upper() == 'SAIDA':
+            match cst:
+                case '1': return '01'
+                case '2': return '04'
+                case '3': return '05'
+                case '4': return '06'
+                case '5': return '07'
+                case '6': return '08'
+                case '7': return '49'
+                case '8': return '99'
+                case '9': return '02'
+                case _: return '99'
+        else:
+            match cst:
+                case '1': return '01'
+                case '2': return '04'
+                case '3': return '05'
+                case '4': return '06'
+                case '5': return '07'
+                case '6': return '08'
+                case '7': return '49'
+                case '8': return '99'
+                case '9': return '02' 
+                case '12': return '50'
+                case '27': return '70'
+                case '28': return '71'
+                case '32': return '75'
+                case '33': return '98'
+                case _: return '99'
 
 def corrigir_generico():
     pass

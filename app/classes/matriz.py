@@ -6,12 +6,13 @@ from app.classes.banco_de_dados import Banco_de_dados
 
 
 class Matriz():
-    def __init__(self, migracao:str='', sistema_origem:str='', sistema_destino:str='', extensao:str='', banco:Banco_de_dados = None):
+    def __init__(self, migracao:str='', sistema_origem:str='', sistema_destino:str='', extensao:str='', banco:Banco_de_dados = None, cod_filial:str = None):
         self.migracao = migracao
         self.sistema_origem = sistema_origem
         self.sistema_destino = sistema_destino
         self.extensao = extensao
         self.banco = banco
+        self.cod_filial = cod_filial
     def filtro_de_importacao(self) -> list:
         """Função com o intuito de ser um filtro com base nas informações coletadas
         anteriormente, como o tipo de migração, o sistema de origem e destino e o
@@ -27,7 +28,7 @@ class Matriz():
         mensagem = lambda: messagebox.showerror("Erro", f"Tipo de importação >>{migracao.upper()}<< ERRADA. Sistema de Origem >>{sistema_origem.upper()}<< ERRADO. Tipo de extenção >>{extensao.upper()}<< ERRADA.") 
         match sistema_origem:
             case 'Autosystem': mensagem()
-            case 'Posto Fácil': return self.Posto_facil(migracao,extensao,banco).processar_dados()
+            case 'Posto Fácil': return self.Posto_facil(migracao,extensao,banco,self.cod_filial).processar_dados()
             case 'Seller': return self.Seller(migracao,extensao,banco).processar_dados()
             case 'outros': mensagem()
             case _: mensagem()
@@ -125,8 +126,9 @@ class Matriz():
                     linha_da_nova_matriz.append(tributacao) # 10 - Tributacao
                     linha_da_nova_matriz.append('99') # 11 - cst_pis (int)
                     linha_da_nova_matriz.append('99') # 12 - cst_cofins (int)
-                    linha_da_nova_matriz.append('99') # 13 - cst_pis_entrada (int)
-                    linha_da_nova_matriz.append('99') # 14 - cst_cofins_entrada (int)
+                    linha_da_nova_matriz.append('98') # 13 - cst_pis_entrada (int)
+                    linha_da_nova_matriz.append('98') # 14 - cst_cofins_entrada (int)
+                    linha_da_nova_matriz.append('') # 15 - Natureza de receita (int)
                     
                     nova_matriz.append(linha_da_nova_matriz)
                 if os.path.exists(xml_file):
@@ -164,16 +166,19 @@ class Matriz():
                     - 12 - cst_cofins (int)
                     - 13 - cst_pis_entrada (int)
                     - 14 - cst_cofins_entrada (int)
+                    - 15 - natureza_de_receuta (int)
+
                     """ 
                     produtos = banco.executar_query(query)
                     
                 else: return
 
     class Posto_facil:
-        def __init__(self, migracao:str = '', extensao:str = '', banco:str = None):
+        def __init__(self, migracao:str = '', extensao:str = '', banco:Banco_de_dados = None, cod_filial:str = None):
             self.migracao = migracao
             self.extensao = extensao
             self.banco = banco
+            self.cod_filial = cod_filial
 
         def processar_dados(self):
             mensagem = lambda: messagebox.showerror("Erro", f"Tipo de importação {self.migracao} ERRADA. Sistema de Origem >>POSTO FÁCIL<< ERRADO. Tipo de extenção {self.extensao} ERRADA.")
@@ -183,7 +188,7 @@ class Matriz():
                         case '.xml':  mensagem()
                         case '.csv':  mensagem()
                         case '.xls':  mensagem()
-                        case 'banco': mensagem()
+                        case 'banco': return self.produto_banco()
                         case _:       mensagem()
                 case 'CLIENTES': 
                     match self.extensao:
@@ -200,3 +205,78 @@ class Matriz():
                         case 'banco': mensagem()
                         case _:       mensagem()
                 case _:               mensagem()
+
+        def produto_banco(self):
+            try:
+                if self.banco:
+                    banco = self.banco        
+                    query_empresa = f"SELECT EMPRESA_ID FROM EMPRESA where NOM_EMPRESA = '{self.cod_filial}'"
+                    banco.cursor.execute(query_empresa)
+                    resultado = banco.cursor.fetchall()
+                    
+                    query = (f"select CB.COD_BARRA, " +
+                            "PP.DESCRICAO, " +
+                            "PNN.DESCRICAO, " +
+                            "PN.DESCRICAO, " +
+                            "PE.PRC_VEN_VISTA, " +
+                            "PE.PRC_CUSTO, " +
+                            "PP.UND_VENDA, " +
+                            "PP.UND_MEDIDA, " +
+                            "PP.QTD_CAIXA, " +
+                            "PP.CODIGO_NCM, " +
+                            "PP.CT, " +
+                            "PP.cst_pis_cofins, " +
+                            
+                            "PP.cst_pis_cofins_entrada, " +
+                            "NR.codigo " +
+                            "from PRODUTO_EMPRESA PE " +
+                            "left join PRODUTO PP on PP.PRODUTO_ID = PE.PRODUTO_ID " +
+                            "left join PRODUTO_NIVEL2 PN on PN.PRODUTO_NIVEL2_ID = PP.PRODUTO_NIVEL2_ID " +
+                            "left join PRODUTO_NIVEL1 PNN on PNN.PRODUTO_NIVEL1_ID = PN.PRODUTO_NIVEL1_ID " +
+                            "left join COD_BARRA_PRODUTO CB on CB.PRODUTO_ID = PP.PRODUTO_ID " +
+                            "left join naturezas_receita NR ON NR.natureza_receita_id = PP.natureza_receita_id " +
+                            f"where PE.EMPRESA_ID = {resultado[0][0]}")
+                    banco.cursor.execute(query)
+                    resultado = banco.cursor.fetchall()
+                    matriz_nova =[]
+                    from app.classes.correcoes import Correcao
+                    corretor = Correcao()
+                    
+                    
+                    
+                    for item  in resultado:
+                        linha_matriz = []
+                        linha_matriz.append(item[0]) # Codigo de barras
+                        linha_matriz.append(corretor.corrigir_nome_acentos(item[1])) # Nome do produto
+                        linha_matriz.append(corretor.corrigir_nome_acentos(item[2])) # Nome do grupo
+                        linha_matriz.append(corretor.corrigir_nome_acentos(item[3])) # Nome do subgrupo
+                        linha_matriz.append(item[4]) # preço de venda do produto
+                        linha_matriz.append(item[5]) # preço de compra do produto
+                        
+                        unidade_venda = corretor.corrigir_unidade_posto_facil(item[6])
+                        linha_matriz.append(unidade_venda) # Unidade de medida de compra
+
+                        unidade_compra = corretor.corrigir_unidade_posto_facil(item[7])
+                        linha_matriz.append(unidade_compra) # Unidade de medida de venda
+                        
+                        linha_matriz.append(item[8]) # Fator de conversao
+                        
+                        linha_matriz.append(item[9]) # Código NCM do produto
+                        
+                        tributacao = corretor.corrigir_tributacao_posto_facil(item[10])
+                        linha_matriz.append(tributacao) # Tributacao
+                        cst_pis_cofis = corretor.corrigir_cst_posto_facil(item[11])
+                        linha_matriz.append(cst_pis_cofis) # cst_pis
+                        linha_matriz.append(cst_pis_cofis) # cst_cofins
+
+                        cst_pis_cofis_entrada = corretor.corrigir_cst_posto_facil(item[12], 'ENTRADA')
+                        linha_matriz.append(cst_pis_cofis_entrada) # cst_pis_entrada
+                        linha_matriz.append(cst_pis_cofis_entrada) # cst_cofins_entrada
+                        linha_matriz.append(item[13]) # natureza_de_receita
+                        matriz_nova.append(linha_matriz)
+                    print(matriz_nova)
+                    return matriz_nova
+                    
+            except Exception as e:
+                messagebox.showerror('ERROR',e)
+                return None

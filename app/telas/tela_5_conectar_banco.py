@@ -12,6 +12,8 @@ class Tela_5(Telas):
             if self.banco_origem.cursor:
                 print("MEU USUARIO É "+self.banco_origem.usuario)
                 print("MEU BANCO É "+self.banco_origem.banco)
+                
+                
             else:
                 print("NÃO TENHO BANCO DE ORIGEM")
         
