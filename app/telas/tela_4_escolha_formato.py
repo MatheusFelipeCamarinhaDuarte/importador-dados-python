@@ -68,7 +68,7 @@ class Tela_4(Telas):
 
     def ir_para_proxima_tela(self):
         from app.telas.tela_5_conectar_banco import Tela_5
-        from app.icons.tela_4 import Tela_intermediaria
+        from app.telas_intermediarias.tela_4 import Tela_intermediaria
         from app.classes.manipular_arquivos import Manipular_arquivos
         from app.classes.matriz import Matriz
 
@@ -86,5 +86,7 @@ class Tela_4(Telas):
         
             
         else:
-            Tela_intermediaria(self.janela,self.migracao,self.sistema_origem, self.sistema_destino, self.extensao, self.matriz, self.banco_origem)
-            self.erros("Erro", f"Este módulo ainda não foi implantado.")
+            if self.banco_origem.cursor:
+                Tela_intermediaria(self.janela,self.migracao,self.sistema_origem, self.sistema_destino, self.extensao, self.matriz, self.banco_origem)
+            else:
+                self.erros("Erro", f"Nenhum banco foi encontrado.")

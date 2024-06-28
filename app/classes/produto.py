@@ -11,6 +11,13 @@ class Produto():
         """
         self.matriz = matriz
         self.banco = banco
+        self.substituir = None
+        
+        self.lista_tributacoes = []
+        
+        self.lista_codigo_barra = []
+        self.lista_nome_grupo = []
+        self.lista_nome_subgrupo = []
     
     
     def tratamento_de_matriz(self):
@@ -45,52 +52,73 @@ class Produto():
             substituir (bool, optional): _description_. Defaults to False.
         """
         conexao = self.banco.conexao
+        self.substituir = substituir
         if conexao:
-            id = self.banco.id(substituir, 'produto')        
-            
-            if not substituir:
-                result1 = self.banco.executar_query(f"SELECT codigo_barra FROM produto")
-                maior_numero = 0
-                for i in result1:
-                    numero = int(i[0])
-                    if numero >= maior_numero:
-                        maior_numero = numero
-                id = maior_numero + 1
-            
-            # Inserção dos grupos e subgrupos, junto com a troca de seus nomes por grid
-            matriz = self.troca_de_grupo(self.matriz)
-            
+            # Declarando listas e contadores
             lista_erros = []
-            lista_tributacoes = []
+            lista_nome_produtos_sendo_adicionados = []
             contador_produtos_totais = 0
-            result = self.banco.executar_query(f"SELECT codigo FROM tributacao WHERE tributacao = 0;")
+            contador_produtos_adicionados = 0
+            contador_multi_codigo_barra = 0
+            id = self.banco.id(substituir, 'produto') # Pega o último ID ou o ID 1 para iniciar, a depender da variável substituir
+            self.verificar_substituicao()
+            print(len(self.lista_nome_grupo))
+            print(len(self.lista_nome_subgrupo))
+
+
+
+            # Inserção dos grupos e subgrupos, junto com a troca de seus nomes por grid
+            matriz = self.troca_de_grupo()
+            
+            resultado_tributacao_padrao = self.banco.executar_query(f"SELECT codigo FROM tributacao WHERE tributacao = 0;")
+            tributacao_padrao = resultado_tributacao_padrao[0][0]
             resultado_cd_tributacao = self.banco.executar_query(f"SELECT codigo FROM tributacao;")
             for item in resultado_cd_tributacao:
-                lista_tributacoes.append(item[0])
+                self.lista_tributacoes.append(item[0])
             for produto in matriz:
                 contador_produtos_totais += 1
                 
                 grupo,subgrupo,fator_conversao,codigo_ncm,cst_pis,cst_cofins,cst_pis_entrada,cst_cofins_entrada = produto[2],produto[3],produto[8],produto[9],produto[11],produto[12],produto[13],produto[14],
 
-                codigo_barra, nome, preco_venda, custo_medio, unid_venda, unid_compra, natureza_receita,importar, errado, motivo_erro = self.verificacao_erro_produto(produto[0],produto[1],produto[4],produto[5],produto[6],produto[7],produto[15])
+                codigo_barra, nome, preco_venda, custo_medio, unid_venda, unid_compra, natureza_receita,importar, errado, motivo_erro = self.verificacao_erro_produto(id,produto[0],produto[1],produto[4],produto[5],produto[6],produto[7],produto[15])
+                if codigo_barra in self.lista_codigo_barra:
+                    errado = True
+                    importar = False
+                    motivo_erro = [f'codigo barra {codigo_barra} já existe dentro do banco de dados (não foi adicionado novamente)']
+                # print(len(self.lista_codigo_barra))
                 try:
                     tributacao = produto[10]
-                    if tributacao not in lista_tributacoes:
-                        tributacao = result[0][0]
+                    if tributacao not in self.lista_tributacoes:
+                        tributacao = tributacao_padrao
                     if tributacao == '':
-                        tributacao = result[0][0]
+                        tributacao = tributacao_padrao
                 except:
-                    tributacao = result[0][0]
+                    tributacao = tributacao_padrao
 
                 if importar:
                     try:
-                        query = f"INSERT INTO produto(codigo, codigo_barra, nome, grupo, subgrupo, preco_unit, preco_custo, unid_med, unid_med_entrada, qtde_unid_entrada, codigo_ncm, tributacao, cst_pis, cst_cofins, cst_pis_entrada, cst_cofins_entrada, natureza_receita) VALUES({id}, {codigo_barra}, '{nome}', {grupo}, {subgrupo}, {preco_venda}, {custo_medio}, '{unid_venda}', '{unid_compra}', {fator_conversao}, '{codigo_ncm}', '{tributacao}', '{cst_pis}', '{cst_cofins}', '{cst_pis_entrada}', '{cst_cofins_entrada}', {natureza_receita});"
-                        self.banco.executar_query(query)
-                        id += 1
+                        if nome in lista_nome_produtos_sendo_adicionados:
+                            query = f"SELECT grid FROM produto Where nome = '{nome}'"
+                            resultado = self.banco.executar_query(query)
+                            grid_certa = resultado[0][0]
+                            query = f"INSERT INTO produto_codigo_barra(produto,codigo_barra) Values({grid_certa},{codigo_barra})"
+                            self.banco.executar_query(query)
+                            self.lista_codigo_barra.append(codigo_barra)
+                            
+                            contador_multi_codigo_barra += 1
+                        else:
+                            query = f"INSERT INTO produto(codigo, codigo_barra, nome, grupo, subgrupo, preco_unit, preco_custo, unid_med, unid_med_entrada, qtde_unid_entrada, codigo_ncm, tributacao, cst_pis, cst_cofins, cst_pis_entrada, cst_cofins_entrada, natureza_receita) VALUES({id}, {codigo_barra}, '{nome}', {grupo}, {subgrupo}, {preco_venda}, {custo_medio}, '{unid_venda}', '{unid_compra}', {fator_conversao}, '{codigo_ncm}', '{tributacao}', '{cst_pis}', '{cst_cofins}', '{cst_pis_entrada}', '{cst_cofins_entrada}', {natureza_receita});"
+                            self.banco.executar_query(query)
+                            lista_nome_produtos_sendo_adicionados.append(nome)
+                            self.lista_codigo_barra.append(codigo_barra)
+                            contador_produtos_adicionados += 1
+                            id += 1
                     except Exception as e:
                         motivo_erro.append(e)
                         errado = True
                         importar = False
+                        self.banco.iniciar(self.banco.usuario,self.banco.senha,self.banco.banco,self.banco.porta,self.banco.host)
+
                 if errado:
                     if importar:
                         id_erro = id-1
@@ -98,14 +126,14 @@ class Produto():
                     else:
                         id_erro = '###'
                         importado = 'Não importado'
-                    lista_erros.append([id_erro,nome,codigo_barra,preco_venda,custo_medio,importado,motivo_erro])            
+                    lista_erros.append([id_erro,nome,codigo_barra,preco_venda,custo_medio,importado,motivo_erro])
             conexao.commit()
                         
-            resultado_produtos_totais = self.banco.executar_query(f"SELECT codigo FROM produto;")
+            resultado_produtos_totais_no_banco = self.banco.executar_query(f"SELECT codigo FROM produto;")
             self.banco.finalizar()
-            return lista_erros, len(resultado_produtos_totais),contador_produtos_totais, id
+            return lista_erros, contador_produtos_adicionados,contador_produtos_totais,len(resultado_produtos_totais_no_banco), contador_multi_codigo_barra
 
-    def troca_de_grupo(self, matriz:list[list]) -> list[list]:
+    def troca_de_grupo(self) -> list[list]:
         """Método para trocar o grupo pelo grid equivalente
 
         Args:
@@ -115,6 +143,7 @@ class Produto():
             list[list]: matriz depois da mudança
         """
         from app.classes.correcoes import Correcao
+        matriz  = self.matriz
         corretor = Correcao()
         grupo_dict = {}
         for linha in matriz:
@@ -126,7 +155,6 @@ class Produto():
                 grupo_dict[grupo] = {subgrupo}
         for item in grupo_dict:
             grupo_dict[item] = list(grupo_dict[item])
-        print(grupo_dict)
         grupo_com_grid, subgrupo_com_grid = self.cadastrar_grupo_produto(grupo_dict)
         
         for linha in matriz:
@@ -146,42 +174,74 @@ class Produto():
             Tuple[dict,dict]: Envia 2 dicionário (um de grupo e outro de subgrupo). 
             cada dicionário tem o nome como chave e o grid como valor
         """
-        self.banco.executar_query(f"DELETE FROM grupo_produto")
-        self.banco.executar_query(f"DELETE FROM subgrupo_produto")
-        id = 1
-        id_sub = 1
+        # De acordo com a variável substituir, deleta os bancos anteriores, ou pega o id de acordo com a coluna codigo         
+        id = self.banco.id(self.substituir,'grupo_produto')
+        id_sub = self.banco.id(self.substituir,'subgrupo_produto')
         grupo_com_grid = {} 
         subgrupo_com_grid = {}
+        if self.substituir:
+            pass
+
+        # Para cada um dos grupos, vai pegar também a lista de subgrupos associada a ele
         for grupo, subgrupos in dicionario.items():
-            self.banco.executar_query(f"INSERT INTO grupo_produto (codigo,nome,flag,estoque_negativo_deposito) VALUES ({id},'{grupo}','A',true);")
-            resultado_banco_grupo = self.banco.executar_query(f"SELECT grid FROM grupo_produto WHERE codigo = {id};")
-            print(resultado_banco_grupo)
-            grid_grupo = resultado_banco_grupo[0][0]
-            grupo_com_grid[grupo] = grid_grupo
+            if grupo in self.lista_nome_grupo:
+                resultado_grid_grupo_existente = self.banco.executar_query(f"SELECT grid FROM grupo_produto WHERE nome = '{grupo}'")
+                grid_do_grupo_atual = resultado_grid_grupo_existente[0][0]
+            else:
+                self.banco.executar_query(f"INSERT INTO grupo_produto (codigo,nome,flag,estoque_negativo_deposito) VALUES ({id},'{grupo}','A',true);")
+                resulltado_grid_do_grupo_atual = self.banco.executar_query(f"SELECT grid FROM grupo_produto WHERE codigo = {id};")
+                grid_do_grupo_atual = resulltado_grid_do_grupo_atual[0][0]
+                id += 1
+
+            grupo_com_grid[grupo] = grid_do_grupo_atual
+            
             for subgrupo in subgrupos:
-                self.banco.executar_query(f"INSERT INTO subgrupo_produto (codigo,nome,grupo,flag) VALUES ({id_sub},'{subgrupo}',{grid_grupo},'A');")
-                resultado_banco_subgrupo = self.banco.executar_query(f"SELECT grid FROM subgrupo_produto WHERE codigo = {id_sub};")
-                grid_subgrupo = resultado_banco_subgrupo[0][0]
-                subgrupo_com_grid[subgrupo] = grid_subgrupo
-                id_sub += 1
-            id += 1
-        
+                if subgrupo in self.lista_nome_subgrupo:
+                    resultado_grid_subgrupo_existente = self.banco.executar_query(f"SELECT grid FROM subgrupo_produto WHERE nome = '{subgrupo}'")
+                    grid_do_subgrupo_atual = resultado_grid_subgrupo_existente[0][0]
+                else:
+                    self.banco.executar_query(f"INSERT INTO subgrupo_produto (codigo,nome,grupo,flag) VALUES ({id_sub},'{subgrupo}',{grid_do_grupo_atual},'A');")
+                    resultado_grid_do_subgrupo_atual = self.banco.executar_query(f"SELECT grid FROM subgrupo_produto WHERE codigo = {id_sub};")
+                    grid_do_subgrupo_atual = resultado_grid_do_subgrupo_atual[0][0]
+                    id_sub += 1
+                    
+                subgrupo_com_grid[subgrupo] = grid_do_subgrupo_atual
+
         resultado_banco_deposito = self.banco.executar_query(f"SELECT grid FROM deposito WHERE codigo = 100;")
-        try:
+        if resultado_banco_deposito:
             grid_depoisto = resultado_banco_deposito[0][0]
             self.banco.executar_query(f"UPDATE deposito SET estoque_negativo = false WHERE codigo = 100;")
-        except:
+        else:
             self.banco.executar_query(f"INSERT INTO deposito (codigo,nome,empresa,flag) VALUES (100,'DEPOSITO LOJA',1,'A');")
-            resultado_banco_deposito_loja = self.banco.executar_query(f"SELECT grid FROM deposito WHERE codigo = 100;")
-            grid_depoisto = resultado_banco_deposito_loja[0][0]
-        # self.cursor.execute("DELETE FROM deposito_grupo_produto WHERE codigo = 100;")
+            resultado_banco_deposito_padrao = self.banco.executar_query(f"SELECT grid FROM deposito WHERE codigo = 100;")
+            grid_depoisto = resultado_banco_deposito_padrao[0][0]
+        if self.substituir:
             self.banco.executar_query(f"DELETE FROM deposito_grupo_produto WHERE deposito = ({grid_depoisto});")
-        for nome_grupo,grid_dos_grupos in grupo_com_grid.items():
-            self.banco.executar_query(f"INSERT INTO deposito_grupo_produto (deposito,grupo) VALUES ({grid_depoisto},{grid_dos_grupos});")
+        for nome_grupo, grid_grupo in grupo_com_grid.items():
+            self.banco.executar_query(f"DELETE FROM deposito_grupo_produto WHERE grupo = ({grid_grupo});")
+            self.banco.executar_query(f"INSERT INTO deposito_grupo_produto (deposito,grupo) VALUES ({grid_depoisto},{grid_grupo});")
         self.banco.conexao.commit()
         return grupo_com_grid, subgrupo_com_grid
 
-    def verificacao_erro_produto(self, codigo_barra:str, nome:str, preco_venda:str, custo_medio:str, unid_venda:str, unid_compra:str, natureza_receita:str) -> Tuple[str,str,str,str,str,str,bool,bool,list[str]]:
+
+    def verificar_substituicao(self) -> Tuple[list,list,list]:
+        if self.substituir:
+            # Se for pra substituir, deleta a tabela de produto com código de barras
+            self.banco.executar_query(f"DELETE FROM produto_codigo_barra")
+        else:
+            # Se for apenas para adicionar, ele irá fazer uma lista com os códigos de barras com os produtos atuais
+            resultado_codigo_barra = self.banco.executar_query(f"SELECT codigo_barra FROM produto UNION all SELECT codigo_barra FROM produto_codigo_barra")
+            for codigo in resultado_codigo_barra:
+                self.lista_codigo_barra.append(codigo[0])            
+            resultado_nome_grupos = self.banco.executar_query(f"SELECT nome FROM grupo_produto")
+            for nome in resultado_nome_grupos:
+                self.lista_nome_grupo.append(nome[0])
+            
+            resultado_nome_subgrupos = self.banco.executar_query(f"SELECT nome FROM subgrupo_produto")
+            for nome in resultado_nome_subgrupos:
+                self.lista_nome_subgrupo.append(nome[0])
+
+    def verificacao_erro_produto(self, id_do_produto:int,codigo_barra:str, nome:str, preco_venda:str, custo_medio:str, unid_venda:str, unid_compra:str, natureza_receita:str) -> Tuple[str,str,str,str,str,str,str,bool,bool,list[str]]:
         """Método de verificacao de erros antes das importações.
 
         Args:
@@ -230,10 +290,11 @@ class Produto():
             # motivo_erro.append('Falta natureza de receita')
             # errado = True
             importar = True
-        if codigo_barra == '':
-            motivo_erro.append('Falta de codigo de barras')
+        if codigo_barra == '' or not codigo_barra:
+            motivo_erro.append(f'Falta de codigo de barras. Foi replicado o ID do produto ({id_do_produto}) no código de barra')
+            codigo_barra = id_do_produto
             errado = True
-            importar = False
+            importar = True
         if nome == '' :
             motivo_erro.append('Falta de nome')
             errado = True
@@ -242,10 +303,12 @@ class Produto():
             motivo_erro.append('Kit não importado, favor, verificar cadastro.')
             errado = True
             importar = False
-        if not codigo_barra:
-            motivo_erro.append('Falta de codigo de barras')
+        if codigo_barra in self.lista_codigo_barra:
             errado = True
             importar = False
-        
+            motivo_erro = [f'codigo barra {codigo_barra} já existe dentro do banco de dados (não foi adicionado novamente)']
+        else:
+            self.lista_codigo_barra.append(codigo_barra)
+            
         return codigo_barra, nome, preco_venda, custo_medio, unid_venda, unid_compra, natureza_receita, importar, errado, motivo_erro
 

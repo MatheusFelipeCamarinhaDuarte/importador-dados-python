@@ -40,34 +40,33 @@ class Tela_5(Telas):
         adicionar.config(state=self.tk.DISABLED)
         if self.banco_destino.cursor:
             substituir.config(state=self.tk.NORMAL,command=lambda:[self.ir_para_proxima_tela(True)])
-            adicionar.config(state=self.tk.NORMAL,command=lambda:[self.erros('Error','Módulo ainda não implantado!')])
+            adicionar.config(state=self.tk.NORMAL,command=lambda:[self.ir_para_proxima_tela(False)])
+            # adicionar.config(state=self.tk.NORMAL,command=lambda:[self.erros('Error','Módulo ainda não implantado!')])
 
     def ir_para_proxima_tela(self,substituir:bool):
         from app.classes.produto import Produto
+        from app.telas.tela_4_escolha_formato import Tela_4
         produto = Produto(self.matriz,self.banco_destino)
-        lista_erros, produtos_totais_adicionados,contador_produtos_totais, produtos_adicionados = produto.cadastrar_produto(substituir)
+        lista_erros, produtos_totais_adicionados,contador_produtos_totais,resultado_produtos_totais_no_banco, contador_multi_barra = produto.cadastrar_produto(substituir)
+        Tela_4(self.janela,self.migracao,self.sistema_origem, self.sistema_destino)
         
         mensagem = self.tk.Toplevel()
         if lista_erros != []:
             from app.classes.relatorios import Relatorios
-            xa = (mensagem.winfo_screenwidth() // 2) - (300 // 2)
+            xa = (mensagem.winfo_screenwidth() // 2) - (400 // 2)
             ya = (mensagem.winfo_screenheight() // 2) - (300 // 2)
-            mensagem.geometry(f"{300}x{200}+{xa}+{ya}")            
-            label = self.tk.Label(mensagem, text=f'Produtos totais: {contador_produtos_totais}')
+            mensagem.geometry(f"{400}x{300}+{xa}+{ya}")            
+            label = self.tk.Label(mensagem, text=f'Produtos totais identificados na base de origem: {contador_produtos_totais - contador_multi_barra}')
             label.pack()
-            if substituir:
-                label1 = self.tk.Label(mensagem, text=f'Produtos adicionados: {produtos_totais_adicionados}')
-                label1.pack()
-                
-            else:
-                label1 = self.tk.Label(mensagem, text=f'Produtos adicionados: {produtos_adicionados-1}')
-                label1.pack()
-                label1 = self.tk.Label(mensagem, text=f'Produtos totais no banco: {produtos_totais_adicionados}')
-                label1.pack()
-            label3 = self.tk.Label(mensagem, text=f'Produtos não adicionados: {contador_produtos_totais - produtos_adicionados + 1}')
+            label1 = self.tk.Label(mensagem, text=f'Produtos adicionados: {produtos_totais_adicionados}')
+            label1.pack()
+            label3 = self.tk.Label(mensagem, text=f'Produtos não adicionados: {contador_produtos_totais - produtos_totais_adicionados - contador_multi_barra}')
             label3.pack()
             label2 = self.tk.Label(mensagem, text=f'Produtos com restrições: {len(lista_erros)}')
             label2.pack()
+            if not substituir:
+                label1 = self.tk.Label(mensagem, text=f'Produtos totais atualmente na base de destino: {resultado_produtos_totais_no_banco}')
+                label1.pack()
         
             baixar_relatorio_de_importacao = lambda: [Relatorios().relatorio_erros_produto(lista_erros),mensagem.destroy(),self.voltar_tela_inicial()]
             botao = self.tk.Button(mensagem, text='Baixar relatório de importação', command=baixar_relatorio_de_importacao, font=("Arial", 10))

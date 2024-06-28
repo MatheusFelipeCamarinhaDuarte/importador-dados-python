@@ -22,7 +22,18 @@ class Correcao():
         for original, replacement in substitutions.items():
             nome = nome.replace(original, replacement)
         return nome
+    def corretor_codigo_barra(self,codigo):
+        """Método para corrigir 0 a esquerda do código de barras de
 
+        Args:
+            codigo (_type_): codigo de barras
+        """
+        if codigo:
+            codigo_barra = str(int(codigo))
+            return codigo_barra
+        else:
+            return codigo
+        
     def corrigir_unidade(self,unidade:str) -> str:
         """Converte a unidade em unidade lida pelo AutoSystem
 

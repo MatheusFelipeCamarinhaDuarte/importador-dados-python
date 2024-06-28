@@ -246,7 +246,7 @@ class Matriz():
                     
                     for item  in resultado:
                         linha_matriz = []
-                        linha_matriz.append(item[0]) # Codigo de barras
+                        linha_matriz.append(corretor.corretor_codigo_barra(item[0])) # Codigo de barras
                         linha_matriz.append(corretor.corrigir_nome_acentos(item[1])) # Nome do produto
                         linha_matriz.append(corretor.corrigir_nome_acentos(item[2])) # Nome do grupo
                         linha_matriz.append(corretor.corrigir_nome_acentos(item[3])) # Nome do subgrupo
@@ -274,7 +274,6 @@ class Matriz():
                         linha_matriz.append(cst_pis_cofis_entrada) # cst_cofins_entrada
                         linha_matriz.append(item[13]) # natureza_de_receita
                         matriz_nova.append(linha_matriz)
-                    print(matriz_nova)
                     return matriz_nova
                     
             except Exception as e:

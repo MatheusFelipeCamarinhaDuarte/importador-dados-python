@@ -25,8 +25,13 @@ class Janela(tk.Tk):
         # Travando as dimensões da janela
         self.resizable(False, False)
         # Protocolo de encerramento correto
-        self.protocol("WM_DELETE_WINDOW", lambda: self.quit())
-
+        self.protocol("WM_DELETE_WINDOW", lambda: self.sair())
+    def sair(self):
+        for i in range(100):
+            try:
+                self.quit()
+            except:
+                break
     def limpar(self) -> None:
         """Método para limpar todos os widgets
 

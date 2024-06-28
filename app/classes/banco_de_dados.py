@@ -51,8 +51,6 @@ class Banco_de_dados():
             self.usuario = ''
             self.senha = ''
             self.banco = ''
-            self.porta = ''
-            self.host = ''
             messagebox.showerror("Erro", "Os dados passados de usuário, senha ou banco estão incorretos.")
 
     def iniciar_firebird(self,usuario:str,senha:str,banco:str) -> None:
@@ -89,8 +87,6 @@ class Banco_de_dados():
             self.usuario = ''
             self.senha = ''
             self.banco = ''
-            self.porta = ''
-            self.host = ''
             messagebox.showerror("Erro", "Os dados passados de usuário, senha ou banco estão incorretos.")
 
     def finalizar(self) -> None:
@@ -111,22 +107,20 @@ class Banco_de_dados():
             print(e)
         try:
             resultado = cursor.fetchall()
-            print(resultado)
         except:
             resultado = None
         return resultado
 
-    def id(self,substituir, tabela):
+    def id(self,substituir:bool, tabela):
         id = 1
         if substituir:
             self.cursor.execute(f"DELETE FROM {tabela}")
         else:
-            self.cursor.execute(f"SELECT * FROM {tabela}")
-            result1 = self.cursor.fetchall()
+            self.cursor.execute(f"SELECT codigo FROM {tabela}")
+            resultado_codigo_tabela = self.cursor.fetchall()
             maior_numero = 0
-            for i in result1:
-                numero = int(i[0])
-                if numero >= maior_numero:
-                    maior_numero = numero
-            id = maior_numero + 1
+            for item in resultado_codigo_tabela:
+                if int(item[0]) >= maior_numero:
+                    maior_numero = int(item[0])
+            id = int(maior_numero) + 1
         return id
